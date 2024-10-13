@@ -83,6 +83,7 @@ export default function Navbar({ hideSearch }: { hideSearch?: boolean }) {
               <Link
                 key={idx}
                 to={nav.link}
+                onClick={() => setIsMenuOpen(false)}
                 className={cn(
                   "block pl-3 pr-4 py-2 border-l-4 text-base font-medium border-transparent text-gray-500 hover:bg-gray-50  hover:text-gray-700",
                   isPathMatching(nav.link)
@@ -118,12 +119,14 @@ export default function Navbar({ hideSearch }: { hideSearch?: boolean }) {
             )}
             <div className="mt-3 space-y-1">
               <Link
+                onClick={() => setIsMenuOpen(false)}
                 to={PATHS.MYACCOUNT}
                 className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
               >
                 Your Profile
               </Link>
               <Link
+                onClick={() => setIsMenuOpen(false)}
                 to={PATHS.SETTINGS}
                 className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
               >
@@ -135,6 +138,7 @@ export default function Navbar({ hideSearch }: { hideSearch?: boolean }) {
                 </div>
               ) : (
                 <Link
+                  onClick={() => setIsMenuOpen(false)}
                   to={PATHS.LOGIN}
                   className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                 >
