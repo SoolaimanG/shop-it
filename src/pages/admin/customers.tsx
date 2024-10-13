@@ -98,7 +98,7 @@ function CustomerDetail({
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="sm:max-w-[540px] overflow-y-auto">
+      <SheetContent className="md:max-w-xl w-[100%] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Customer Details</SheetTitle>
           <SheetDescription>

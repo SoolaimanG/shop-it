@@ -111,7 +111,7 @@ function RecentOrders() {
           </div>
         </div>
       </SheetTrigger>
-      <SheetContent className="w-[90%] md:max-w-xl">
+      <SheetContent className="w-[100%] md:max-w-xl">
         <SheetHeader>
           <SheetTitle className="text-2xl font-bold">Recent Orders</SheetTitle>
           <SheetDescription>
@@ -211,7 +211,7 @@ const AllOrders = () => {
           <ChevronRight className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent>
+      <SheetContent className="w-[100%] md:max-w-xl">
         <SheetHeader>
           <SheetTitle>All Orders</SheetTitle>
         </SheetHeader>
@@ -254,7 +254,7 @@ const ExpenseInsight = () => {
           <ChevronRight className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent>
+      <SheetContent className="w-[100%] md:max-w-xl">
         <SheetHeader>
           <SheetTitle>Expense Insight</SheetTitle>
         </SheetHeader>
