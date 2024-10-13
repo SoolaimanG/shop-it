@@ -112,7 +112,7 @@ export const Banner: FC<IBanner> = ({
                 width={256}
                 height={256}
                 className={cn(
-                  "w-[13rem] md:w-[15rem] lg:w-[17rem] h-auto relative z-10",
+                  "w-[10.5rem] md:w-[15rem] h-auto relative z-10",
                   imgClassName
                 )}
               />

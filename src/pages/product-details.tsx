@@ -378,7 +378,7 @@ export default function ProductDetail() {
             <TabsContent value="similar-products" className="mt-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">
+                  <h3 className="md:text-lg text-sm md:font-semibold">
                     Products you may like
                   </h3>
                   <Button variant="outline">Contact Suppport</Button>
@@ -398,7 +398,7 @@ export default function ProductDetail() {
             product={product as IProduct}
             className="flex-1"
           >
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full py-6 text-lg">
               <ShoppingCart className="w-4 h-4 mr-2" />
               Add to Cart
             </Button>

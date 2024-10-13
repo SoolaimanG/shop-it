@@ -19,7 +19,7 @@ export const TopSellers: FC<{ className?: string }> = () => {
     <div>
       <CaroselItems
         options={{ showButtons: true, autoPlay: true, playDelay: 6000 }}
-        caroselItemClassName="md:basis-1/2 lg:basis-1/3 basis-[60%]"
+        caroselItemClassName="md:basis-1/2 lg:basis-1/3 basis-[85%]"
         items={
           products?.map((product) => <Product {...product} showBtn />) || []
         }

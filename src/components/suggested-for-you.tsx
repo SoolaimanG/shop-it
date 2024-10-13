@@ -26,7 +26,7 @@ export const SuggestedForYou: FC<{ category?: string; size?: number }> = ({
     <div>
       <CaroselItems
         options={{ showButtons: true, autoPlay: true, playDelay: 5000 }}
-        caroselItemClassName="basis-[60%] md:basis-1/2 lg:basis-1/3"
+        caroselItemClassName="basis-[85%] md:basis-1/2 lg:basis-1/3"
         items={
           products?.map((product) => (
             <Product

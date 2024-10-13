@@ -12,7 +12,7 @@ import {
 
 export const Footer = () => {
   return (
-    <div className="w-full mt-4 flex items-center justify-center bg-primary text-accent px-2 py-10">
+    <div className="w-screen mt-4 flex items-center justify-center flex-wrap bg-primary text-accent px-2 py-10">
       <BackgroundWithLights />
       <ScreenSize className="flex items-center flex-col gap-3 justify-center">
         <div className="flex gap-4">
