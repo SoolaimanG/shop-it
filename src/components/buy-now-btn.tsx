@@ -3,9 +3,9 @@ import { toast } from "@/hooks/use-toast";
 import { cn, errorMessageAndStatus, store } from "@/lib/utils";
 import { useMediaQuery } from "@uidotdev/usehooks";
 import { Dispatch, FC, ReactNode, SetStateAction, useState } from "react";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "./ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader } from "./ui/drawer";
 import { Button } from "./ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Dialog, DialogContent } from "./ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
@@ -51,7 +51,7 @@ const CompleteCheckProcess: FC<{
         shippingAddress: user?.address.isdefault
           ? user.address.deliveryAddress
           : "",
-        deliveryMethod: "pick_up",
+        deliveryMethod: "waybill",
       },
     });
 
@@ -79,14 +79,14 @@ const CompleteCheckProcess: FC<{
     }
 
     return (
-      <ScrollArea className="h-[80vh] pr-4">
-        <Card className="w-full rounded-sm shadow-none">
+      <ScrollArea className="h-[60vh] pr-4">
+        <Card className="w-full rounded-sm p-2 shadow-none">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-center">
               Complete Your Order
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -142,31 +142,18 @@ const CompleteCheckProcess: FC<{
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          defaultValue={"waybill"}
                           className="space-y-2"
                         >
                           <div className="flex items-center space-x-2 bg-muted p-3 rounded-md">
-                            <RadioGroupItem value="pick_up" id="pick_up" />
+                            <RadioGroupItem value="waybill" id="waybill" />
                             <Label
-                              htmlFor="pick_up"
-                              className="flex-1 cursor-pointer"
-                            >
-                              <span className="font-medium">Pick Up</span>
-                              <p className="text-sm text-muted-foreground">
-                                3-5 business days
-                              </p>
-                            </Label>
-                            <span className="text-sm font-medium">Free</span>
-                          </div>
-                          <div className="flex items-center space-x-2 bg-muted p-3 rounded-md">
-                            <RadioGroupItem value="express" id="express" />
-                            <Label
-                              htmlFor="express"
+                              htmlFor="waybill"
                               className="flex-1 cursor-pointer"
                             >
                               <span className="font-medium">WayBill</span>
                               <p className="text-sm text-muted-foreground">
-                                1-2 business days
+                                5-7 business days
                               </p>
                             </Label>
                             <span className="text-sm font-medium">
@@ -197,7 +184,6 @@ const CompleteCheckProcess: FC<{
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerContent onPointerDownOutside={(e) => e.preventDefault()}>
         <DrawerHeader className="flex justify-between items-center">
-          <DrawerTitle>Complete Your Order</DrawerTitle>
           <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
             <X className="h-4 w-4" />
           </Button>
@@ -215,9 +201,6 @@ const CompleteCheckProcess: FC<{
         className="max-w-[50%]"
         onPointerDownOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader>
-          <DialogTitle>Complete Your Order</DialogTitle>
-        </DialogHeader>
         <CheckoutForm />
       </DialogContent>
     </Dialog>

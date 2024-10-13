@@ -10,6 +10,7 @@ import { useToastError } from "@/hooks/use-toast-error";
 import { Store } from "@/lib/utils";
 
 import Image from "@/public/shop-by-category-image-one-removebg-preview.png";
+import { PATHS } from "../../types";
 
 const SkeletonCard: FC = () => (
   <div className="flex items-center flex-col">
@@ -47,7 +48,7 @@ export const ShopByCategory: FC = () => {
     <div className="flex items-center gap-7 mt-3 overflow-x-auto">
       {collections.map((collection, idx) => (
         <Link
-          to={collection.slug}
+          to={PATHS.PRODUCTS + `?collection=${collection.slug}`}
           key={idx}
           className="flex items-center flex-col"
         >
