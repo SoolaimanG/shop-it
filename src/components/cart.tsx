@@ -47,7 +47,7 @@ export const Cart = () => {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[80%] sm:max-w-lg flex flex-col">
+      <SheetContent className="w-[100%] sm:max-w-lg flex flex-col">
         <SheetHeader>
           <SheetTitle>Your Cart</SheetTitle>
         </SheetHeader>

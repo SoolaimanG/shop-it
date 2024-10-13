@@ -57,13 +57,6 @@ const DashBoard = () => {
       <ScreenSize>
         <nav className="w-full flex items-center justify-between">
           <h2 className="text-2xl font-bold">Dashboard</h2>
-          <div className="flex md:items-center md:justify-between md:flex-row flex-col-reverse gap-1 items-end">
-            <DatePickerWithRange date={date} setDate={setDate} />
-            <Button size="sm" className="gap-2">
-              <DownloadIcon size={17} />
-              Download
-            </Button>
-          </div>
         </nav>
         <div className="mt-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

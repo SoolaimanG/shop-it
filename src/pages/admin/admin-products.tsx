@@ -114,7 +114,7 @@ export default function AdminProducts() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Products</h2>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-sm md:text-base">
               Manage your products and view their sales performance.
             </p>
           </div>
