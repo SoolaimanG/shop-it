@@ -1,10 +1,5 @@
-import { DatePickerWithRange } from "@/components/date-picker";
 import { ScreenSize } from "@/components/screen-size";
-import { Button } from "@/components/ui/button";
-import { addDays } from "date-fns";
-import { ArrowUpIcon, DollarSign, DownloadIcon, Users } from "lucide-react";
-import { useState } from "react";
-import { DateRange } from "react-day-picker";
+import { ArrowUpIcon, DollarSign, Users } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -30,10 +25,6 @@ import { formatCurrency, Store } from "@/lib/utils";
 const DashBoard = () => {
   const store = new Store();
   const n = useNavigate();
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(2023, 0, 20),
-    to: addDays(new Date(2022, 0, 20), 20),
-  });
 
   const { data: d } = useQuery({
     queryKey: ["dashboard-content"],
