@@ -14,7 +14,7 @@ export const Footer = () => {
   return (
     <div className="w-screen mt-4 flex items-center justify-center flex-wrap bg-primary text-accent px-2 py-10">
       <BackgroundWithLights />
-      <ScreenSize className="flex items-center flex-col gap-3 justify-center">
+      <ScreenSize className="flex items-center flex-col gap-3 justify-center w-full flex-wrap">
         <div className="flex gap-4">
           {navLinks.map((nav, idx) => (
             <Link key={idx} to={nav.link} className="w-fit">
