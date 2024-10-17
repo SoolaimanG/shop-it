@@ -31,7 +31,7 @@ const EachSet: FC<IProduct> = ({
       <BuyNow
         totalPrice={discountedPrice || price}
         id={[_id]}
-        className="flex items-center justify-center"
+        className="flex items-center justify-center w-full"
       >
         <Button variant="link" className="rounded-none underline">
           Buy Now
