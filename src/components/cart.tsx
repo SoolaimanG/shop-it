@@ -131,7 +131,7 @@ export const Cart = () => {
               {formatCurrency(totalPrice)}
             </span>
           </div>
-          <BuyNow id={productIds}>
+          <BuyNow id={productIds} totalPrice={totalPrice}>
             <Button className="w-full">Checkout</Button>
           </BuyNow>
         </div>

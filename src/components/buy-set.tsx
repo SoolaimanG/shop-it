@@ -11,7 +11,14 @@ import { useQuery } from "@tanstack/react-query";
 import { store } from "@/lib/utils";
 
 //
-const EachSet: FC<IProduct> = ({ imgs, name, collection, _id = "" }) => {
+const EachSet: FC<IProduct> = ({
+  imgs,
+  name,
+  collection,
+  _id = "",
+  discountedPrice,
+  price,
+}) => {
   return (
     <div className="w-full md:mt-4">
       <div className="w-full flex items-center justify-center">
@@ -21,7 +28,11 @@ const EachSet: FC<IProduct> = ({ imgs, name, collection, _id = "" }) => {
         <Text>{collection}</Text>
         <h2 className="font-bold text-xl">{name}</h2>
       </div>
-      <BuyNow id={[_id]} className="flex items-center justify-center">
+      <BuyNow
+        totalPrice={discountedPrice || price}
+        id={[_id]}
+        className="flex items-center justify-center"
+      >
         <Button variant="link" className="rounded-none underline">
           Buy Now
         </Button>
@@ -43,6 +54,9 @@ export const BuySet = () => {
         <div className="relative rounded-md isolate overflow-hidden bg-primary flex items-center justify-center md:w-[60%] w-full h-full">
           <BuyNow
             id={[data?.completeSet._id || ""]}
+            totalPrice={
+              data?.completeSet.discountedPrice || data?.completeSet.price
+            }
             className="absolute top-3 right-3"
           >
             <Button variant="secondary" size="sm" className="rounded-sm gap-1">

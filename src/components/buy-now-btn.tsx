@@ -1,255 +1,162 @@
-import { useAuthentication } from "@/hooks/use-authentication";
-import { toast } from "@/hooks/use-toast";
-import { cn, errorMessageAndStatus, store } from "@/lib/utils";
-import { useMediaQuery } from "@uidotdev/usehooks";
-import { Dispatch, FC, ReactNode, SetStateAction, useState } from "react";
-import { Drawer, DrawerContent, DrawerHeader } from "./ui/drawer";
-import { Button } from "./ui/button";
-import { Dialog, DialogContent } from "./ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Label } from "./ui/label";
-import { Input } from "./ui/input";
-import { Separator } from "./ui/separator";
-import { Loader2, Mail, MapPin, Truck, X } from "lucide-react";
-import { Textarea } from "./ui/textarea";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-import { ScrollArea } from "./ui/scroll-area";
+"use client";
+
+import { ReactNode, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "./ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { appConfigs } from "../../data";
-import { formatCurrency } from "@/lib/utils";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { useMediaQuery } from "@uidotdev/usehooks";
+import { cn, errorMessageAndStatus, formatCurrency, store } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "./ui/drawer";
 
-const CompleteCheckProcess: FC<{
-  isOpen: boolean;
-  productIds: string[];
-  setIsOpen: Dispatch<SetStateAction<boolean>>;
-}> = ({ isOpen, setIsOpen, productIds }) => {
+export function BuyNow({
+  totalPrice = 99.99,
+  children,
+  id: productIds,
+  className,
+}: {
+  totalPrice?: number;
+  children: ReactNode;
+  id: string[];
+  className?: string;
+}) {
   const isMobile = useMediaQuery("(max-width:767px)");
-  const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuthentication();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const CheckoutForm = () => {
-    const formSchema = z.object({
-      email: z.string().email(),
-      shippingAddress: z.string().min(1, "Shipping address is required"),
-      deliveryMethod: z.enum(["pick_up", "waybill"]),
-    });
+  const completeOrder = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
 
-    const form = useForm<z.infer<typeof formSchema>>({
-      resolver: zodResolver(formSchema),
-      defaultValues: {
-        email: user?.email || "",
-        shippingAddress: user?.address.isdefault
-          ? user.address.deliveryAddress
-          : "",
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get("email") as string;
+    const address = formData.get("address") as string;
+
+    try {
+      const res = await store.createNewOrder({
         deliveryMethod: "waybill",
-      },
-    });
+        productIds,
+        shippingAddress: address,
+        u: email,
+        //fullName,
+        //note,
+      });
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-      try {
-        setIsLoading(true);
-        const res = await store.createNewOrder({
-          shippingAddress: values.shippingAddress,
-          deliveryMethod: values.deliveryMethod,
-          productIds,
-          u: values.email,
-        });
-        setIsOpen(false);
-        window.open(res.data.paymentLink, "_blank");
-      } catch (error) {
-        const _error = errorMessageAndStatus(error);
-        toast({
-          title: `Something went wrong ${_error.status}`,
-          description: _error.message,
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
+      window.open(res.data.paymentLink, "_blank");
+      toast({
+        title: "Order Placed Successfully",
+        description: "You will be redirected to complete your payment.",
+        variant: "default",
+      });
+    } catch (error) {
+      const _error = errorMessageAndStatus(error);
+      toast({
+        title: `Something went wrong ${_error.status}`,
+        description: _error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    return (
-      <ScrollArea className="h-[60vh] pr-4">
-        <Card className="w-full rounded-sm p-2 shadow-none">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">
-              Complete Your Order
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-              >
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        Email
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter your email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Separator />
-                <FormField
-                  control={form.control}
-                  name="shippingAddress"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        Shipping Address
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Enter your shipping address"
-                          className="min-h-[100px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Separator />
-                <FormField
-                  control={form.control}
-                  name="deliveryMethod"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Truck className="w-4 h-4" />
-                        Delivery Method
-                      </FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={"waybill"}
-                          className="space-y-2"
-                        >
-                          <div className="flex items-center space-x-2 bg-muted p-3 rounded-md">
-                            <RadioGroupItem value="waybill" id="waybill" />
-                            <Label
-                              htmlFor="waybill"
-                              className="flex-1 cursor-pointer"
-                            >
-                              <span className="font-medium">WayBill</span>
-                              <p className="text-sm text-muted-foreground">
-                                5-7 business days
-                              </p>
-                            </Label>
-                            <span className="text-sm font-medium">
-                              {formatCurrency(appConfigs.deliveryFee)}
-                            </span>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : null}
-                  Complete Checkout
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      </ScrollArea>
-    );
   };
 
-  const MobileDrawer = () => (
-    <Drawer open={isOpen} onOpenChange={setIsOpen}>
-      <DrawerContent onPointerDownOutside={(e) => e.preventDefault()}>
-        <DrawerHeader className="flex justify-between items-center">
-          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
-            <X className="h-4 w-4" />
-          </Button>
+  const OrderForm = () => (
+    <form onSubmit={completeOrder} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="fullName">Full Name</Label>
+        <Input id="fullName" name="fullName" placeholder="John Doe" required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          placeholder="john@example.com"
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="address">Address</Label>
+        <Textarea
+          id="address"
+          name="address"
+          placeholder="123 Main St, City, Country"
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="note">Note (Optional)</Label>
+        <Textarea
+          id="note"
+          name="note"
+          placeholder="Any special instructions..."
+        />
+      </div>
+      <Separator className="my-4" />
+      <div className="flex justify-between items-center">
+        <span className="text-lg font-semibold">Total:</span>
+        <span className="text-lg font-bold">{formatCurrency(totalPrice)}</span>
+      </div>
+      <Button className="w-full" type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Processing..." : "Make Payment"}
+      </Button>
+    </form>
+  );
+
+  const ScrollableContent = ({ children }: { children: React.ReactNode }) => (
+    <div className="h-[calc(100vh-10rem)] overflow-y-auto pr-4 -mr-4 scrollbar-hide">
+      {children}
+    </div>
+  );
+
+  const MobileSheet = () => (
+    <Drawer>
+      <DrawerTrigger asChild className={cn(className)}>
+        {children}
+      </DrawerTrigger>
+      <DrawerContent className="h-[90%] sm:h-[85%] p-3">
+        <DrawerHeader>
+          <DrawerTitle>Confirm Your Order</DrawerTitle>
         </DrawerHeader>
-        <div className="p-4">
-          <CheckoutForm />
-        </div>
+        <ScrollableContent>
+          <div className="mt-4">
+            <OrderForm />
+          </div>
+        </ScrollableContent>
       </DrawerContent>
     </Drawer>
   );
 
   const DesktopDialog = () => (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent
-        className="max-w-[50%]"
-        onPointerDownOutside={(e) => e.preventDefault()}
-      >
-        <CheckoutForm />
+    <Dialog>
+      <DialogTrigger asChild className={cn(className)}>
+        {children}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Confirm Your Order</DialogTitle>
+        </DialogHeader>
+        <ScrollableContent>
+          <OrderForm />
+        </ScrollableContent>
       </DialogContent>
     </Dialog>
   );
 
-  return isMobile ? <MobileDrawer /> : <DesktopDialog />;
-};
-
-export const BuyNow: FC<{
-  children: ReactNode;
-  id: string[];
-  className?: string;
-}> = ({ children, className, id: productIds }) => {
-  const [open, setOpen] = useState(false);
-
-  //  const createOrder = React.useCallback(async () => {
-  //    if (!isAuthenticated || !user?.address.isdefault) {
-  //      setOpen(true);
-  //      return;
-  //    }
-  //
-  //    try {
-  //      const res = await store.createNewOrder({
-  //        shippingAddress: user.address.deliveryAddress || "",
-  //        deliveryMethod: "pick_up",
-  //        productIds,
-  //        u: user.email,
-  //      });
-  //      window.open(res.data.paymentLink, "_blank");
-  //    } catch (error) {
-  //      const _error = errorMessageAndStatus(error);
-  //      toast({
-  //        title: `Something went wrong ${_error.status}`,
-  //        description: _error.message,
-  //        variant: "destructive",
-  //      });
-  //    }
-  //  }, [isAuthenticated, user, productIds]);
-
-  return (
-    <>
-      <div onClick={() => setOpen(true)} className={cn(className)}>
-        {children}
-      </div>
-      <CompleteCheckProcess
-        isOpen={open}
-        setIsOpen={setOpen}
-        productIds={productIds}
-      />
-    </>
-  );
-};
+  return isMobile ? <MobileSheet /> : <DesktopDialog />;
+}
