@@ -19,15 +19,16 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScreenSize } from "@/components/screen-size";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn, desc, formatCurrency, store } from "@/lib/utils";
+import { cn, desc, formatCurrency, sendMailProps, store } from "@/lib/utils";
 import { AddToCart } from "@/components/add-to-cart-btn";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useToastError } from "@/hooks/use-toast-error";
 import { IProduct } from "../../types";
 import { MiniFooter } from "@/components/mini-footer";
 import { SuggestedForYou } from "@/components/suggested-for-you";
 import { BuyNow } from "@/components/buy-now-btn";
+import { appConfigs } from "../../data";
 
 function ProductLoading() {
   return (
@@ -213,6 +214,26 @@ export default function ProductDetail() {
               </div>
             </div>
 
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              >
+                -
+              </Button>
+              <span className="text-xl font-semibold">{quantity}</span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() =>
+                  setQuantity(Math.min(product?.stock || 0, quantity + 1))
+                }
+              >
+                +
+              </Button>
+            </div>
+
             <div>
               <p className="text-sm text-gray-600">
                 {product?.stock || 0 > 0
@@ -381,7 +402,11 @@ export default function ProductDetail() {
                   <h3 className="md:text-lg text-sm md:font-semibold">
                     Products you may like
                   </h3>
-                  <Button variant="outline">Contact Suppport</Button>
+                  <Button variant="outline">
+                    <Link to={sendMailProps(appConfigs.supportEmails[0])}>
+                      Contact Suppport
+                    </Link>
+                  </Button>
                 </div>
                 <SuggestedForYou size={9} category={product?.collection} />
               </div>
@@ -403,7 +428,11 @@ export default function ProductDetail() {
               Add to Cart
             </Button>
           </AddToCart>
-          <BuyNow id={[product?._id || ""]} className="flex-1">
+          <BuyNow
+            id={[product?._id || ""]}
+            totalPrice={product?.price}
+            className="flex-1"
+          >
             <Button className="w-full text-lg py-6">Buy Now</Button>
           </BuyNow>
         </div>

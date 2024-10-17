@@ -588,7 +588,7 @@ export const OrderDetails: FC<{
             <div className="flex items-center justify-between">
               <dt className="flex items-center gap-1 text-muted-foreground">
                 <Link2Icon className="h-4 w-4" />
-                <Link to={order?.paymentLink || ""}>
+                <Link to={order?.paymentLink || ""} className="line-clamp-1">
                   {order?.paymentLink || "No link found."}
                 </Link>
               </dt>

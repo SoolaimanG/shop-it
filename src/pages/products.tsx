@@ -80,7 +80,7 @@ const Products = () => {
               <Product key={idx} {...product} />
             ))}
           </div>
-          <div className="flex items-center justify-center w-full">
+          <div className="flex items-center justify-center w-full mt-3">
             <Button
               disabled={isLoading}
               onClick={() => setPage((prev) => prev + 10)}
