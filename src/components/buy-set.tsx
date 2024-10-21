@@ -18,6 +18,7 @@ const EachSet: FC<IProduct> = ({
   _id = "",
   discountedPrice,
   price,
+  availableColors,
 }) => {
   return (
     <div className="w-full md:mt-4">
@@ -30,7 +31,7 @@ const EachSet: FC<IProduct> = ({
       </div>
       <BuyNow
         totalPrice={discountedPrice || price}
-        id={[_id]}
+        products={[{ id: _id, color: availableColors[0] }]}
         className="flex items-center justify-center w-full"
       >
         <Button variant="link" className="rounded-none underline">
@@ -53,7 +54,12 @@ export const BuySet = () => {
       <CardContent className="p-0 h-fit sr-only:py-3 md:h-[30rem] flex md:flex-row flex-col rounded-md">
         <div className="relative rounded-md isolate overflow-hidden bg-primary flex items-center justify-center md:w-[60%] w-full h-full">
           <BuyNow
-            id={[data?.completeSet._id || ""]}
+            products={[
+              {
+                id: data?.completeSet._id || "",
+                color: data?.completeSet.availableColors[0] || "",
+              },
+            ]}
             totalPrice={
               data?.completeSet.discountedPrice || data?.completeSet.price
             }

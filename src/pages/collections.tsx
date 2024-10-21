@@ -47,6 +47,8 @@ const Collections: FC<{}> = () => {
                 <Banner
                   key={idx}
                   {...children}
+                  totalPrice={0}
+                  color=""
                   //className="w-full"
                   btn={
                     <Button

@@ -171,8 +171,10 @@ function CustomerDetail({
             <div className="flex items-center justify-between">
               <Label>Delivery Address</Label>
               <EditAddress
-                address={customer.address.deliveryAddress}
-                isdefault={customer.address.isdefault}
+                address={{
+                  state: customer.address.state,
+                  lga: customer.address.lga,
+                }}
                 asAdmin
                 userId={customer._id}
                 _onSubmit={() => query.invalidateQueries({ queryKey })}
@@ -182,15 +184,14 @@ function CustomerDetail({
                 </Button>
               </EditAddress>
             </div>
-            <p className="text-sm">{customer.address.deliveryAddress}</p>
-            {customer.address.isdefault && (
-              <Badge variant="outline">Default</Badge>
-            )}
+            <p className="text-sm">
+              {customer.address.state + ", " + customer.address.lga}
+            </p>
           </div>
 
           <div className="space-y-2">
             <Label>Recent Products</Label>
-            {customer.recentOrder.length > 0 ? (
+            {customer.recentOrder?.products?.length > 0 ? (
               <Card>
                 <Table>
                   <TableHeader>
@@ -365,12 +366,12 @@ export function Customers() {
                       {!isMobile && (
                         <TableCell
                           title={
-                            customer?.recentOrder[0]?.items[0]?.name ||
-                            "No Product Order"
+                            customer?.recentOrder.products?.[0]?.items[0]
+                              ?.name || "No Product Order"
                           }
                         >
-                          {customer?.recentOrder[0]?.items[0]?.name ||
-                            "No Product Order"}
+                          {customer?.recentOrder.products?.[0]?.items[0]
+                            ?.name || "No Product Order"}
                         </TableCell>
                       )}
                       <TableCell>
