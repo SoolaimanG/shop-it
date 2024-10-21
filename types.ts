@@ -5,7 +5,7 @@ export enum PATHS {
   PRODUCTS = "/products/",
   MYACCOUNT = "/my-account/",
   SETTINGS = PATHS.MYACCOUNT + "#settings",
-  API_DOMAIN = "http://localhost:3000/",
+  API_DOMAIN = "https://aunty-zaliya-website-backend.vercel.app/",
   LOGIN = "#login",
   DASHBOARD = "/admin/dashboard/",
   CUSTOMERS = "/admin/customers/",
