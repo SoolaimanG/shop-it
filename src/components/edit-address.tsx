@@ -1,6 +1,4 @@
-import { Input } from "@/components/ui/input";
 import { z } from "zod";
-import { addressSchema } from "data";
 import { toast } from "@/hooks/use-toast";
 import { useMediaQuery } from "@uidotdev/usehooks";
 import {
@@ -26,18 +24,29 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useStore } from "@/hooks/useStore";
 import { FC, ReactNode, useState } from "react";
-import { errorMessageAndStatus, Store } from "@/lib/utils";
-import { Button } from "./ui/button";
+import { errorMessageAndStatus, store } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { ChevronRight, MapPin } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+
+const addressSchema = z.object({
+  state: z.string(),
+  lga: z.string(),
+});
 
 const btn = (
   <Button variant="outline" className="w-full justify-between">
@@ -50,33 +59,37 @@ const btn = (
 );
 
 export const EditAddress: FC<{
-  address: string;
-  isdefault?: boolean;
+  address: { state: string; lga: string };
   children?: ReactNode;
   userId?: string;
   asAdmin?: boolean;
   _onSubmit?: () => void;
-}> = ({
-  address,
-  isdefault,
-  children = btn,
-  userId = "",
-  asAdmin = false,
-  _onSubmit,
-}) => {
+}> = ({ address, children = btn, userId = "", asAdmin = false, _onSubmit }) => {
   const { setUser, user } = useStore();
   const form = useForm<z.infer<typeof addressSchema>>({
-    defaultValues: { address, defaultAddress: isdefault },
+    defaultValues: address,
   });
   const isMobile = useMediaQuery("(max-width:767px)");
   const [open, setOpen] = useState(false);
-  const store = new Store();
 
-  const onSubmit = async (values: z.infer<typeof addressSchema>) => {
+  const { isLoading, data } = useQuery({
+    queryKey: ["states"],
+    queryFn: store.getStates,
+  });
+
+  const { isLoading: lgasLoading, data: _data } = useQuery({
+    queryKey: ["lgas", form.watch("state")],
+    queryFn: () => store.getLGAs(form.watch("state")),
+    enabled: Boolean(form.watch("state")),
+  });
+
+  const { data: states } = data || {};
+  const { data: lgas } = _data || {};
+
+  const onSubmit = async (address: z.infer<typeof addressSchema>) => {
     try {
       const res = await store.editAddress({
-        deliveryAddress: values.address,
-        isdefault: values.defaultAddress,
+        address,
         asAdmin,
         userId,
       });
@@ -85,10 +98,7 @@ export const EditAddress: FC<{
         !userId &&
         setUser({
           ...user,
-          address: {
-            deliveryAddress: values.address,
-            isdefault: values.defaultAddress || false,
-          },
+          address,
         });
 
       _onSubmit && _onSubmit();
@@ -112,41 +122,64 @@ export const EditAddress: FC<{
   const formUI = (
     <Form {...form}>
       <form
-        action=""
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-2"
+        className="flex flex-col gap-4"
       >
         <FormField
-          name="address"
+          control={form.control}
+          name="state"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Edit Address</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
+              <FormLabel>State</FormLabel>
+              <Select
+                disabled={isLoading}
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a state" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {states?.map((state) => (
+                    <SelectItem key={state} value={state}>
+                      {state}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </FormItem>
           )}
         />
         <FormField
-          name="defaultAddress"
           control={form.control}
+          name="lga"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormDescription>
-                  Use this address as default when checking out
-                </FormDescription>
-              </div>
+            <FormItem>
+              <FormLabel>LGA</FormLabel>
+              <Select
+                disabled={lgasLoading && !form.watch("state")}
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an LGA" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {lgas?.map((lga) => (
+                    <SelectItem key={lga} value={lga}>
+                      {lga}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </FormItem>
           )}
         />
-        <Button>Save Changes</Button>
+        <Button type="submit">Save Changes</Button>
       </form>
     </Form>
   );
@@ -155,17 +188,15 @@ export const EditAddress: FC<{
     return (
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerTrigger asChild>{children}</DrawerTrigger>
-        <DrawerContent className="p-2">
+        <DrawerContent className="p-4">
           <DrawerHeader>
-            <DrawerTitle>Edit Address Your Address</DrawerTitle>
+            <DrawerTitle>Edit Your Address</DrawerTitle>
             <DrawerDescription>
-              Easily update or add new delivery address to ensure your orders
-              are shipped to the right location. Keep your address book
-              up-to-date for faster checkouts and smooth deliveries.
+              Update your state and local government area.
             </DrawerDescription>
           </DrawerHeader>
           {formUI}
-          <DrawerFooter className="p-0 py-2">
+          <DrawerFooter className="pt-4">
             <DrawerClose asChild>
               <Button variant="outline">Close</Button>
             </DrawerClose>
@@ -182,9 +213,7 @@ export const EditAddress: FC<{
         <AlertDialogHeader>
           <AlertDialogTitle>Edit Address</AlertDialogTitle>
           <AlertDialogDescription>
-            Easily update or add new delivery address to ensure your orders are
-            shipped to the right location. Keep your address book up-to-date for
-            faster checkouts and smooth deliveries.
+            Update your state and local government area.
           </AlertDialogDescription>
         </AlertDialogHeader>
         {formUI}

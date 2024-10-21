@@ -5,6 +5,7 @@ import { Navigate } from "react-router-dom";
 import queryString from "query-string";
 import { IUserRole, PATHS } from "../../types";
 import { toast } from "@/hooks/use-toast";
+import { useToastError } from "@/hooks/use-toast-error";
 
 export const ProtectedPage: FC<{
   children: ReactNode;
@@ -14,6 +15,8 @@ export const ProtectedPage: FC<{
 
   const qs = queryString.stringify({ callbackUrl });
   const { isLoading, user, error } = useAuthentication();
+
+  useToastError(error);
 
   if (isLoading)
     return (
@@ -28,7 +31,6 @@ export const ProtectedPage: FC<{
     });
     return <Navigate to={callbackUrl} />;
   }
-  //
 
   if (error) return <Navigate to={`?${qs || "/"}${PATHS.LOGIN}`} />;
 

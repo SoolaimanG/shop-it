@@ -9,13 +9,14 @@ export const AddToCart: FC<{
   product: IProduct;
   className?: string;
   quantity?: number;
-}> = ({ children, className, product, quantity = 1 }) => {
+  color: string;
+}> = ({ children, className, product, quantity = 1, color }) => {
   const { addItemToCart } = useStore();
   //
   return (
     <div
       onClick={() => {
-        Boolean(quantity) && addItemToCart({ ...product, quantity });
+        Boolean(quantity) && addItemToCart({ ...product, quantity, color });
         toast({
           title: "Success",
           description: `Product ${product._id} has been added to your cart`,

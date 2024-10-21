@@ -21,6 +21,8 @@ interface IBanner {
   className?: string;
   imgClassName?: string;
   btn?: ReactNode;
+  color?: string;
+  totalPrice: number;
 }
 
 export const Banner: FC<IBanner> = ({
@@ -31,8 +33,10 @@ export const Banner: FC<IBanner> = ({
   btnText = "Shop Now",
   className,
   imgClassName,
+  color = "",
+  totalPrice,
   btn = (
-    <BuyNow id={[productId]}>
+    <BuyNow totalPrice={totalPrice} products={[{ id: productId, color }]}>
       <Button size="lg" variant="secondary" className="mt-6">
         {btnText}
       </Button>

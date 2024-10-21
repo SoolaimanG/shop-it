@@ -1,15 +1,44 @@
-//import { CalendarDaysIcon, HandRaisedIcon } from '@heroicons/react/24/outline'
-
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { Form } from "./ui/form";
+import { Form, FormControl, FormField, FormItem } from "./ui/form";
 import { useForm } from "react-hook-form";
-import { Label } from "./ui/label";
 import { newsLetterData } from "../../data";
 import { BackgroundWithLights } from "./background-with-lights";
+import { errorMessageAndStatus, store } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const newsLetterSchema = z.object({
+  email: z.string().email(),
+});
 
 export default function JoinNewsLetter() {
-  const form = useForm();
+  const form = useForm<z.infer<typeof newsLetterSchema>>({
+    resolver: zodResolver(newsLetterSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof newsLetterSchema>) {
+    try {
+      const res = await store.joinNewsLetter(values.email);
+
+      toast({
+        title: "Success",
+        description: res.message,
+      });
+      form.reset();
+    } catch (error) {
+      const _error = errorMessageAndStatus(error);
+      toast({
+        title: `Something went wrong ${_error.status}`,
+        description: _error.message,
+        variant: "destructive",
+      });
+    }
+  }
 
   return (
     <div className="relative isolate overflow-hidden bg-primary py-16 sm:py-24 lg:py-32">
@@ -23,17 +52,29 @@ export default function JoinNewsLetter() {
               {newsLetterData.description}
             </p>
             <Form {...form}>
-              <form className="mt-6 flex max-w-md gap-x-4">
-                <Label htmlFor="email-address" className="sr-only">
-                  Email address
-                </Label>
-                <Input
-                  id="email-address"
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="mt-6 flex max-w-md gap-x-4 items-center"
+              >
+                <FormField
+                  control={form.control}
                   name="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  autoComplete="off"
-                  className="text-white rounded-none"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          id="email-address"
+                          type="email"
+                          placeholder="Enter your email"
+                          autoComplete="off"
+                          required
+                          className="text-white rounded-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      {/*<FormMessage />*/}
+                    </FormItem>
+                  )}
                 />
                 <Button
                   type="submit"

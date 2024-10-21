@@ -34,6 +34,7 @@ export const Product: FC<
   description,
   className,
   showBtn,
+  availableColors,
   ...rest
 }) => {
   const [isHovering, setIsHovering] = useState(false);
@@ -121,7 +122,11 @@ export const Product: FC<
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between gap-1 items-center">
         {showBtn && (
-          <BuyNow id={[_id || ""]} className="w-full">
+          <BuyNow
+            totalPrice={discountedPrice || price}
+            products={[{ id: _id || "", color: availableColors[0] }]}
+            className="w-full"
+          >
             <Button className="w-full bg-black text-white hover:bg-gray-800">
               Buy Now
             </Button>
@@ -140,9 +145,12 @@ export const Product: FC<
               stock,
               _id,
               description,
+              availableColors,
+
               ...rest,
             }}
             quantity={1}
+            color={availableColors[0]}
           >
             <Button
               size="icon"
@@ -166,9 +174,11 @@ export const Product: FC<
               stock,
               _id,
               description,
+              availableColors,
               ...rest,
             }}
             quantity={1}
+            color={availableColors[0]}
             className="w-full"
           >
             <Button className="rounded-sm w-full">Add to cart</Button>

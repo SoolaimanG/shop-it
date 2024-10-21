@@ -5,17 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "./logo";
 import { Cart } from "./cart";
 import { navLinks } from "../../data";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { cn, isPathMatching } from "@/lib/utils";
 import { PATHS } from "../../types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useAuthentication } from "@/hooks/use-authentication";
+import Cookies from "js-cookie";
 
 export default function Navbar({ hideSearch }: { hideSearch?: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const n = useNavigate();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const { user } = useAuthentication();
+
+  const signOut = () => {
+    Cookies.remove("access-token");
+    n("/");
+  };
 
   return (
     <nav className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
@@ -133,7 +140,10 @@ export default function Navbar({ hideSearch }: { hideSearch?: boolean }) {
                 Settings
               </Link>
               {user ? (
-                <div className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                <div
+                  onClick={signOut}
+                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                >
                   Sign out
                 </div>
               ) : (

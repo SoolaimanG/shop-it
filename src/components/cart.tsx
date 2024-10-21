@@ -131,7 +131,13 @@ export const Cart = () => {
               {formatCurrency(totalPrice)}
             </span>
           </div>
-          <BuyNow id={productIds} totalPrice={totalPrice}>
+          <BuyNow
+            products={cart.map((p) => ({
+              id: p._id || "",
+              color: p.color || "",
+            }))}
+            totalPrice={totalPrice}
+          >
             <Button className="w-full">Checkout</Button>
           </BuyNow>
         </div>

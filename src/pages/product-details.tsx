@@ -121,8 +121,6 @@ export default function ProductDetail() {
 
   useToastError(error);
 
-  console.log(product);
-
   if (isLoading) return <ProductLoading />;
 
   if (error) return <ProductNotFound id={productId} />;
@@ -361,6 +359,7 @@ export default function ProductDetail() {
 
               <div className="flex space-x-4">
                 <AddToCart
+                  color={selectedColor || product?.availableColors[0] || ""}
                   quantity={quantity}
                   product={product as IProduct}
                   className="flex-1"
@@ -370,7 +369,16 @@ export default function ProductDetail() {
                     Add to Cart
                   </Button>
                 </AddToCart>
-                <BuyNow id={[product?._id || ""]} className="flex-1">
+                <BuyNow
+                  products={[
+                    {
+                      color: selectedColor || product?.availableColors[0] || "",
+                      id: product?._id!,
+                    },
+                  ]}
+                  totalPrice={product?.price}
+                  className="flex-1"
+                >
                   <Button className="w-full text-lg py-6">Buy Now</Button>
                 </BuyNow>
               </div>
@@ -419,6 +427,7 @@ export default function ProductDetail() {
       <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg md:hidden">
         <div className="flex space-x-4">
           <AddToCart
+            color={selectedColor || product?.availableColors[0] || ""}
             quantity={quantity}
             product={product as IProduct}
             className="flex-1"
@@ -429,7 +438,12 @@ export default function ProductDetail() {
             </Button>
           </AddToCart>
           <BuyNow
-            id={[product?._id || ""]}
+            products={[
+              {
+                color: selectedColor || product?.availableColors[0] || "",
+                id: product?._id!,
+              },
+            ]}
             totalPrice={product?.price}
             className="flex-1"
           >

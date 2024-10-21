@@ -19,8 +19,10 @@ import { Link } from "react-router-dom";
 import { Logo } from "./logo";
 import { dashboardNavItems } from "../../data";
 import { PATHS } from "../../types";
+import { useStore } from "@/hooks/useStore";
 
 export function AdminNavbar() {
+  const { user } = useStore();
   const [open, setOpen] = React.useState(false);
   const [showMobileMenu, setShowMobileMenu] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -113,11 +115,8 @@ export function AdminNavbar() {
           </Sheet>
           <Link to={PATHS.MYACCOUNT}>
             <Avatar className="h-8 w-8">
-              <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt="Admin"
-              />
-              <AvatarFallback>AD</AvatarFallback>
+              <AvatarImage src={user?.avatar || ""} alt="Admin" />
+              <AvatarFallback>{user?.email[0]?.toUpperCase()}</AvatarFallback>
             </Avatar>
           </Link>
         </div>

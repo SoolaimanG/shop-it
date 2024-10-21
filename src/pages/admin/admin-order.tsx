@@ -1,6 +1,5 @@
 import { ScreenSize } from "@/components/screen-size";
 import { File, ListFilter, Plus, X } from "lucide-react";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,7 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { IOrder, IProduct } from "../../../types";
+import { IProduct } from "../../../types";
 import {
   Sheet,
   SheetContent,
@@ -72,23 +71,20 @@ import queryString from "query-string";
 import { ProductSelector } from "@/components/product-selector";
 import { Label } from "@/components/ui/label";
 import { Img } from "react-image";
+import { Separator } from "@/components/ui/separator";
+import { Text } from "@/components/text";
 
 const orderSchema = z.object({
-  userId: z.string().min(1, "user is required"),
-  shippingAddress: z.string().min(1, "Shipping address is required"),
-  billingAddress: z.string().min(1, "Billing address is required"),
-  paymentStatus: z.enum(["Credit Card", "PayPal", "Bank Transfer"]),
-  orderStatus: z.enum([
-    "Pending",
-    "Processing",
-    "Shipped",
-    "Delivered",
-    "Cancelled",
-  ]),
-  deliveryMethod: z.enum(["waybill", "pick_up"]),
+  customerName: z.string().optional(),
+  customerEmail: z.string().email(),
+  customerPhone: z.string().optional(),
+  customerNote: z.string().optional(),
+  address: z.string(),
+  state: z.string(),
+  lga: z.string(),
 });
 
-const CreateNewOrder = () => {
+export const CreateNewOrder = () => {
   const [isCreateOrderOpen, setIsCreateOrderOpen] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<Partial<IProduct>[]>(
     []
@@ -97,14 +93,46 @@ const CreateNewOrder = () => {
   const form = useForm<z.infer<typeof orderSchema>>({
     resolver: zodResolver(orderSchema),
     defaultValues: {
-      userId: "",
-      shippingAddress: "",
-      billingAddress: "",
-      paymentStatus: "Credit Card",
-      orderStatus: "Pending",
-      deliveryMethod: "pick_up",
+      customerName: "",
+      customerEmail: "",
+      customerPhone: "",
+      customerNote: "",
+      address: "",
+      state: "",
+      lga: "",
     },
   });
+
+  const { isLoading, data } = useQuery({
+    queryKey: ["states"],
+    queryFn: store.getStates,
+  });
+
+  const { isLoading: lgasLoading, data: _data } = useQuery({
+    queryKey: ["lgas", form.watch("state")],
+    queryFn: () => store.getLGAs(form.watch("state")),
+    enabled: Boolean(form.watch("state")),
+  });
+
+  const { isLoading: deliveryPriceLoading, data: __data } = useQuery({
+    queryKey: ["deliveryFee", form.watch("state"), form.watch("lga")],
+    queryFn: () =>
+      store.calculateDeliveryFee(form.watch("state"), form.watch("lga")),
+    enabled: Boolean(form.watch("state") && form.watch("lga")),
+  });
+
+  const { data: states } = data || {};
+  const { data: lgas } = _data || {};
+  const { data: deliveryFee } = __data || {};
+
+  const handleStateChange = (value: string) => {
+    form.setValue("state", value);
+    form.setValue("lga", "");
+  };
+
+  const handleLGAChange = (value: string) => {
+    form.setValue("lga", value);
+  };
 
   async function onSubmit(values: z.infer<typeof orderSchema>) {
     try {
@@ -117,26 +145,23 @@ const CreateNewOrder = () => {
         return;
       }
 
-      const payload: Pick<
-        IOrder,
-        "shippingAddress" | "deliveryMethod" | "items"
-      > & {
-        u?: string;
-        productIds?: string[];
-      } = {
-        shippingAddress: values.shippingAddress!,
-        deliveryMethod: values.deliveryMethod as "waybill" | "pick_up",
-        items: [],
-        productIds: selectedProducts.map((product) => product._id || ""),
-        u: values.userId,
-      };
-
-      const res = await store.createNewOrder(payload);
-      const newTab = window.open(res.data.paymentLink, "_blank");
-
-      if (newTab) {
-        newTab.focus();
-      }
+      const res = await store.createNewOrder({
+        address: {
+          state: values.state,
+          lga: values.lga,
+          address: values.address,
+        },
+        customer: {
+          name: values.customerName,
+          phoneNumber: values.customerPhone,
+          email: values.customerEmail,
+          note: values.customerNote,
+        },
+        products: selectedProducts.map((product) => ({
+          ids: product?._id || "",
+          color: product?.availableColors?.[0] || "",
+        })),
+      });
 
       setIsCreateOrderOpen(false);
       toast({ title: `Order Created`, description: res.message });
@@ -147,6 +172,7 @@ const CreateNewOrder = () => {
         description: _error.message,
         variant: "destructive",
       });
+    } finally {
     }
   }
 
@@ -160,7 +186,7 @@ const CreateNewOrder = () => {
       </SheetTrigger>
       <SheetContent
         side="right"
-        className="w-[90%] md:max-w-xl overflow-y-auto"
+        className="w-[95%] md:max-w-xl overflow-y-auto"
       >
         <SheetHeader>
           <SheetTitle>Create New Order</SheetTitle>
@@ -172,15 +198,38 @@ const CreateNewOrder = () => {
           >
             <FormField
               control={form.control}
-              name="userId"
+              name="customerEmail"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>User ID or Email Address</FormLabel>
+                  <FormLabel>Customer Email</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter user ID or Email Address"
-                      {...field}
-                    />
+                    <Input placeholder="Enter customer email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="customerName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Customer Name (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter customer name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="customerPhone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Customer Phone (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter customer phone" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -221,52 +270,26 @@ const CreateNewOrder = () => {
             </div>
             <FormField
               control={form.control}
-              name="shippingAddress"
+              name="state"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Shipping Address</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Enter shipping address" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="billingAddress"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Billing Address</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Enter billing address" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="paymentStatus"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Payment Status</FormLabel>
+                  <FormLabel>State</FormLabel>
                   <Select
-                    disabled
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    disabled={isLoading}
+                    onValueChange={handleStateChange}
+                    value={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select payment status" />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a state" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Credit Card">Pending</SelectItem>
-                      <SelectItem value="PayPal">PayPal</SelectItem>
-                      <SelectItem value="Bank Transfer">
-                        Bank Transfer
-                      </SelectItem>
+                      {states?.map((state) => (
+                        <SelectItem key={state} value={state}>
+                          {state}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -275,29 +298,60 @@ const CreateNewOrder = () => {
             />
             <FormField
               control={form.control}
-              name="deliveryMethod"
+              name="lga"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Delivery Method</FormLabel>
+                  <FormLabel>Local Government Area</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    onValueChange={handleLGAChange}
+                    value={field.value}
+                    disabled={lgasLoading || !form.getValues("state")}
                   >
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select delivery method" />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select an LGA" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="waybill">WayBill</SelectItem>
-                      <SelectItem value="pick_up">PickUp</SelectItem>
+                      {lgas?.map((lga) => (
+                        <SelectItem key={lga} value={lga}>
+                          {lga}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit">Create Order</Button>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <Text>Delivery Fee</Text>
+              <p className="font-semibold">
+                {deliveryPriceLoading
+                  ? "Calculating..."
+                  : formatCurrency(deliveryFee?.price || 0)}
+              </p>
+            </div>
+            <FormField
+              control={form.control}
+              name="customerNote"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Customer Note (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter any additional notes"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Creating Order..." : "Create Order"}
+            </Button>
           </form>
         </Form>
       </SheetContent>
@@ -385,7 +439,7 @@ const AdminOrder = () => {
   }
 
   return (
-    <div className="md:pt-20 pt-16 pb-5">
+    <div className="md:pt-20 pt-16 pb-5 w-screen">
       <ScreenSize className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
         <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
@@ -496,7 +550,7 @@ const AdminOrder = () => {
                           Status
                         </TableHead>
                         <TableHead className="hidden md:table-cell">
-                          Delivery Method
+                          Delivery Fees
                         </TableHead>
                         <TableHead className="text-right">Amount</TableHead>
                       </TableRow>
@@ -510,13 +564,13 @@ const AdminOrder = () => {
                         >
                           <TableCell>
                             <div className="font-medium">
-                              {order.userId.slice(0, 17)}...
+                              {order?.customer?.email?.slice(0, 17)}...
                             </div>
                             <div
-                              title={order.userId}
+                              title={order?.customer?.email}
                               className="hidden text-sm text-muted-foreground md:inline"
                             >
-                              {order.userId.slice(0, 10)}..
+                              {order?.customer?.email.slice(0, 10)}..
                             </div>
                           </TableCell>
                           <TableCell className="hidden sm:table-cell">
@@ -537,7 +591,7 @@ const AdminOrder = () => {
                             </Badge>
                           </TableCell>
                           <TableCell className="hidden md:table-cell">
-                            {order.deliveryMethod.toUpperCase()}
+                            {formatCurrency(order.deliveryFee || 0)}
                           </TableCell>
                           <TableCell className="text-right">
                             {formatCurrency(order.totalAmount)}
@@ -584,6 +638,7 @@ const AdminOrder = () => {
         </div>
         <div>
           <OrderDetails
+            className=""
             asAdmin
             orderId={qs.orderId || orders[0]?._id || ""}
             onNext={onNext}

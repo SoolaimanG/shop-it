@@ -48,18 +48,30 @@ export default function Home() {
   const { data: bestSelling } = data || {};
   const { data: banner } = d || {};
 
-  const bestSellingData: IBanner & { image: string } = {
+  const bestSellingData: IBanner & {
+    image: string;
+    color: string;
+    totalPrice: number;
+  } = {
     image: bestSelling?.imgs[0] || "",
     productId: bestSelling?._id || "",
     description: "This is for the description",
     message: "Best Selling SuitCase 100%",
+    color: bestSelling?.availableColors[0] || "",
+    totalPrice: bestSelling?.discountedPrice || bestSelling?.price || 0,
   };
 
-  const discountData: IBanner & { image: string } = {
+  const discountData: IBanner & {
+    image: string;
+    color: string;
+    totalPrice: number;
+  } = {
     image: banner?.product?.imgs[0] || "",
     productId: banner?.productId || "",
     description: banner?.description || "This is for the description",
     message: banner?.message || "Get your special sale up to 50%",
+    color: banner?.product?.availableColors[0] || "",
+    totalPrice: banner?.product.discountedPrice || banner?.product.price || 0,
   };
 
   return (

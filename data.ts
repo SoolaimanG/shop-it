@@ -77,7 +77,7 @@ export const socialMediaLinks = [
 ];
 
 export const appConfigs = {
-  name: "Shop Silk",
+  name: "ShopIt",
   establishmentDate: 2024,
   mission:
     "To empower individuals to express their unique style through carefully curated, sustainable fashion choices",

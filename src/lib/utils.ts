@@ -188,6 +188,14 @@ export class Store {
     return res.data;
   }
 
+  async calculateDeliveryFee(state: string, lga: string) {
+    const q = queryString.stringify({ state, lga });
+    const res: { data: apiResponse<{ price: number }> } = await api.get(
+      `/calculate-delivery-price/?${q}`
+    );
+    return res.data;
+  }
+
   // Authentication & User
   async authenticateUser(accessToken: string) {
     const res: { data: apiResponse<{ token: string } & IUser> } =
@@ -267,14 +275,13 @@ export class Store {
   }
 
   async createNewOrder(
-    orderData: Pick<IOrder, "shippingAddress" | "deliveryMethod"> & {
-      u?: string;
-      productIds?: string[];
+    orderData: Pick<IOrder, "address" | "customer"> & {
+      products?: { color: string; ids: string }[];
     }
   ) {
     const res: { data: apiResponse<IOrder> } = await api.post(
       `/order/`,
-      { user: orderData.u, productIds: orderData.productIds, ...orderData },
+      orderData,
       {
         headers: { Authorization: `${this.getAccessToken}` },
       }
@@ -284,18 +291,16 @@ export class Store {
 
   async editAddress({
     asAdmin = false,
-    isdefault = false,
-    deliveryAddress,
+    address,
     userId,
   }: {
-    deliveryAddress: string;
-    isdefault?: boolean;
+    address: { state: string; lga: string };
     asAdmin?: boolean;
     userId?: string;
   }) {
     const res: { data: apiResponse<IUser> } = await api.post(
       `/edit-address/`,
-      { asAdmin, isdefault, deliveryAddress, userId },
+      { asAdmin, userId, ...address },
       {
         headers: { Authorization: `${this.getAccessToken}` },
       }
@@ -487,6 +492,25 @@ export class Store {
         headers: { Authorization: this.getAccessToken },
       });
 
+    return res.data;
+  }
+
+  async joinNewsLetter(email: string) {
+    const res: { data: apiResponse } = await api.post("/join-newsletter/", {
+      email,
+    });
+    return res.data;
+  }
+
+  async getStates() {
+    const res: { data: apiResponse<string[]> } = await api.get("/get-states/");
+    return res.data;
+  }
+
+  async getLGAs(state: string) {
+    const res: { data: apiResponse<string[]> } = await api.get(
+      `/get-lga/${state}`
+    );
     return res.data;
   }
 }

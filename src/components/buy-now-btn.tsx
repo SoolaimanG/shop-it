@@ -1,25 +1,7 @@
 import { ReactNode, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -39,230 +21,265 @@ import {
   DrawerTrigger,
 } from "./ui/drawer";
 import { useStore } from "@/hooks/useStore";
-
-// Placeholder data for States and LGAs
-const states = [
-  { id: "1", name: "Lagos" },
-  { id: "2", name: "Abuja" },
-  { id: "3", name: "Kano" },
-];
-
-const lgas = {
-  "1": [
-    { id: "1", name: "Ikeja" },
-    { id: "2", name: "Lekki" },
-    { id: "3", name: "Surulere" },
-  ],
-  "2": [
-    { id: "4", name: "Abuja Municipal" },
-    { id: "5", name: "Bwari" },
-    { id: "6", name: "Gwagwalada" },
-  ],
-  "3": [
-    { id: "7", name: "Kano Municipal" },
-    { id: "8", name: "Nassarawa" },
-    { id: "9", name: "Tarauni" },
-  ],
-};
-
-const formSchema = z.object({
-  fullName: z.string().min(2, {
-    message: "Full name must be at least 2 characters.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  address: z.string().min(5, {
-    message: "Address must be at least 5 characters.",
-  }),
-  state: z.string({
-    required_error: "Please select a state.",
-  }),
-  lga: z.string({
-    required_error: "Please select a local government area.",
-  }),
-  note: z.string().optional(),
-});
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
 
 export function BuyNow({
   totalPrice = 99.99,
   children,
-  id: productIds,
+  products,
   className,
 }: {
   totalPrice?: number;
   children: ReactNode;
-  id: string[];
+  products: { color: string; id: string }[];
   className?: string;
 }) {
   const { user } = useStore();
   const isMobile = useMediaQuery("(max-width:767px)");
   const [open, setOpen] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+  const OrderForm = () => {
+    const [formState, setFormState] = useState({
       fullName: user?.name || "",
       email: user?.email || "",
-      address: "",
-      state: "",
-      lga: "",
+      phoneNumber: "",
+      state: user?.address.state || "",
+      lga: user?.address.lga || "",
       note: "",
-    },
-  });
+    });
 
-  const selectedState = form.watch("state");
+    const { isLoading, data } = useQuery({
+      queryKey: ["states"],
+      queryFn: store.getStates,
+    });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      const res = await store.createNewOrder({
-        deliveryMethod: "waybill",
-        productIds,
-        shippingAddress: `${values.address}, ${values.lga}, ${values.state}`,
-        u: values.email,
-      });
+    const { isLoading: lgasLoading, data: _data } = useQuery({
+      queryKey: ["lgas", formState.state],
+      queryFn: () => store.getLGAs(formState.state),
+      enabled: Boolean(formState.state),
+    });
 
-      window.open(res.data.paymentLink, "_blank");
-      toast({
-        title: "Order Placed Successfully",
-        description: "You will be redirected to complete your payment.",
-        variant: "default",
-      });
-      setOpen(false);
-    } catch (error) {
-      const _error = errorMessageAndStatus(error);
-      toast({
-        title: `Something went wrong ${_error.status}`,
-        description: _error.message,
-        variant: "destructive",
-      });
-    }
-  }
+    const { isLoading: deliveryPriceLoading, data: __data } = useQuery({
+      queryKey: ["deliveryFee", formState.state, formState.lga],
+      queryFn: () => store.calculateDeliveryFee(formState.state, formState.lga),
+      enabled: Boolean(formState.state && formState.lga),
+    });
 
-  const OrderForm = () => (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="fullName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="john@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Address</FormLabel>
-              <FormControl>
-                <Textarea placeholder="123 Main St, City" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="state"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>State</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a state" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {states.map((state) => (
-                    <SelectItem key={state.id} value={state.id}>
-                      {state.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="lga"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Local Government Area</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                value={field.value}
-                disabled={!selectedState}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an LGA" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {selectedState &&
-                    lgas[selectedState as keyof typeof lgas].map((lga) => (
-                      <SelectItem key={lga.id} value={lga.id}>
-                        {lga.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="note"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Note (Optional)</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Any special instructions..."
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    const { data: states } = data || {};
+    const { data: lgas } = _data || {};
+    const { data: deliveryPrice } = __data || {};
+
+    const handleInputChange = (
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+      setFormState((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleStateChange = (value: string) => {
+      setFormState((prev) => ({ ...prev, state: value, lga: "" }));
+    };
+
+    const handleLGAChange = (value: string) => {
+      setFormState((prev) => ({ ...prev, lga: value }));
+    };
+
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      const {
+        phoneNumber,
+        fullName: name,
+        note,
+        email,
+        state,
+        lga,
+      } = formState;
+
+      try {
+        const res = await store.createNewOrder({
+          products: products.map((product) => ({
+            ids: product.id,
+            color: product.color,
+          })),
+          address: {
+            address: state + lga,
+            state,
+            lga,
+          },
+          customer: {
+            email,
+            phoneNumber,
+            note,
+            name,
+          },
+        });
+
+        window.open(res.data.paymentLink, "_blank");
+        toast({
+          title: "Order Placed Successfully",
+          description: "You will be redirected to complete your payment.",
+          variant: "default",
+        });
+        setOpen(false);
+      } catch (error) {
+        const _error = errorMessageAndStatus(error);
+        toast({
+          title: `Something went wrong ${_error.status}`,
+          description: _error.message,
+          variant: "destructive",
+        });
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label
+            htmlFor="fullName"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Full Name
+          </label>
+          <Input
+            id="fullName"
+            name="fullName"
+            value={formState.fullName}
+            onChange={handleInputChange}
+            placeholder="John Doe"
+            required
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Email
+          </label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            value={formState.email}
+            onChange={handleInputChange}
+            placeholder="john@example.com"
+            required
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="address"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Phone Number
+          </label>
+          <Input
+            id="phoneNumber"
+            name="phoneNumber"
+            value={formState.phoneNumber}
+            onChange={handleInputChange}
+            placeholder="+2348034938389"
+            required
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="state"
+            className="block text-sm font-medium text-gray-700"
+          >
+            State
+          </label>
+          <Select
+            disabled={isLoading}
+            onValueChange={handleStateChange}
+            value={formState.state}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a state" />
+            </SelectTrigger>
+            <SelectContent>
+              {states?.map((state) => (
+                <SelectItem key={state} value={state}>
+                  {state}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <label
+            htmlFor="lga"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Local Government Area
+          </label>
+          <Select
+            onValueChange={handleLGAChange}
+            value={formState.lga}
+            disabled={lgasLoading || !formState.state}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select an LGA" />
+            </SelectTrigger>
+            <SelectContent>
+              {formState.state &&
+                lgas?.map((lga) => (
+                  <SelectItem key={lga} value={lga}>
+                    {lga}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <label
+            htmlFor="note"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Note (Optional)
+          </label>
+          <Textarea
+            id="note"
+            name="note"
+            value={formState.note}
+            onChange={handleInputChange}
+            placeholder="Any special instructions..."
+          />
+        </div>
         <Separator className="my-4" />
+        <div className="flex justify-between items-center">
+          <span className="text-[15px]">Order:</span>
+          <span className="text-[15px]">{formatCurrency(totalPrice)}</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-[15px]">Delivery Fee:</span>
+          {deliveryPriceLoading ? (
+            "Calculating.."
+          ) : (
+            <span className="text-[15px]">
+              {formatCurrency(deliveryPrice?.price || 0)}
+            </span>
+          )}
+        </div>
         <div className="flex justify-between items-center">
           <span className="text-lg font-semibold">Total:</span>
           <span className="text-lg font-bold">
-            {formatCurrency(totalPrice)}
+            {formatCurrency(totalPrice + (deliveryPrice?.price || 0))}
           </span>
         </div>
         <Button className="w-full" type="submit">
           Make Payment
         </Button>
       </form>
-    </Form>
-  );
+    );
+  };
 
   const ScrollableContent = ({ children }: { children: React.ReactNode }) => (
     <div className="h-[calc(100vh-10rem)] overflow-y-auto pr-4 -mr-4 scrollbar-hide">

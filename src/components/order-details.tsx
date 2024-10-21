@@ -1,17 +1,6 @@
-import {
-  cn,
-  errorMessageAndStatus,
-  formatCurrency,
-  sendMailProps,
-  store,
-} from "@/lib/utils";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Dispatch, FC, SetStateAction, useState } from "react";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-} from "@/components/ui/pagination";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -20,8 +9,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { appConfigs } from "../../data";
-import { Button } from "./ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 import {
   AlertCircle,
   ArrowLeft,
@@ -33,37 +30,15 @@ import {
   MoreVertical,
   Truck,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { Separator } from "./ui/separator";
-import { Skeleton } from "./ui/skeleton";
+import { cn, errorMessageAndStatus, formatCurrency, store } from "@/lib/utils";
 import { Link } from "react-router-dom";
-import { toast } from "@/hooks/use-toast";
-import { IOrder, IOrderStatus } from "../../types";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "./ui/sheet";
-import { ScrollArea } from "./ui/scroll-area";
-import { Label } from "./ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import { Textarea } from "./ui/textarea";
-import { Input } from "./ui/input";
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/pagination";
+import { appConfigs } from "../../data";
+import { Text } from "./text";
 
 const Loader = () => {
   return (
@@ -176,10 +151,7 @@ const OrderNotFound = () => {
         </Button>
         <Button asChild className="flex items-center">
           <Link
-            to={sendMailProps(
-              appConfigs.supportEmails[0],
-              "I can't find my order"
-            )}
+            to={`mailto:${appConfigs.supportEmails[0]}?subject=I can't find my order`}
           >
             Contact Support
           </Link>
@@ -189,162 +161,7 @@ const OrderNotFound = () => {
   );
 };
 
-function AdminOrderEditSheet({
-  order = {} as IOrder,
-  onSave,
-  open: isOpen,
-  setOpen: setIsOpen,
-}: {
-  order?: IOrder;
-  onSave: (updatedOrder: IOrder) => void;
-  open: boolean;
-  setOpen: Dispatch<SetStateAction<boolean>>;
-}) {
-  const orderStatus: IOrderStatus[] = [
-    "Pending",
-    "Delivered",
-    "Shipped",
-    "Cancelled",
-  ];
-  const [editedOrder, setEditedOrder] = useState<IOrder>({
-    _id: order._id || "",
-    userId: order.userId || "",
-    items: order.items || [],
-    orderDate: order.orderDate || new Date(),
-    totalAmount: order.totalAmount || 0,
-    shippingAddress: order.shippingAddress || "",
-    billingAddress: order.billingAddress || "",
-    paymentStatus: order.paymentStatus || "Pending",
-    orderStatus: order.orderStatus || "Processing",
-    deliveryMethod: order.deliveryMethod || "Standard",
-    paymentLink: order.paymentLink || "",
-  });
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setEditedOrder((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string) => (value: string) => {
-    setEditedOrder((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = () => {
-    onSave(editedOrder);
-    setIsOpen(false);
-  };
-
-  return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent className="w-[90%] sm:max-w-lg">
-        <SheetHeader className="space-y-2">
-          <SheetTitle className="text-2xl">
-            Edit Order #{editedOrder._id ?? "New"}
-          </SheetTitle>
-          <SheetDescription>
-            Make changes to the order here. Click save when you're done.
-          </SheetDescription>
-        </SheetHeader>
-        <Separator className="my-4" />
-        <ScrollArea className="h-[calc(100vh-200px)] pr-4">
-          <div className="space-y-6 pb-4">
-            <div className="space-y-2">
-              <Label htmlFor="paymentStatus">Payment Status</Label>
-              <Select
-                disabled
-                onValueChange={handleSelectChange("paymentStatus")}
-                value={editedOrder.paymentStatus}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select payment status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Paid">Paid</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Failed">Failed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="orderStatus">Order Status</Label>
-              <Select
-                onValueChange={handleSelectChange("orderStatus")}
-                value={editedOrder.orderStatus}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select order status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {orderStatus.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="deliveryMethod">Delivery Method</Label>
-              <Select
-                onValueChange={handleSelectChange("deliveryMethod")}
-                value={editedOrder.deliveryMethod}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select delivery method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pick_up">Pick Up</SelectItem>
-                  <SelectItem value="waybill">WayBill</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="shippingAddress">Shipping Address</Label>
-              <Textarea
-                id="shippingAddress"
-                name="shippingAddress"
-                value={editedOrder.shippingAddress}
-                onChange={handleInputChange}
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="billingAddress">Billing Address</Label>
-              <Textarea
-                id="billingAddress"
-                name="billingAddress"
-                value={editedOrder.billingAddress}
-                onChange={handleInputChange}
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="paymentLink">Payment Link</Label>
-              <Input
-                disabled
-                id="paymentLink"
-                name="paymentLink"
-                value={editedOrder.paymentLink}
-                onChange={handleInputChange}
-              />
-            </div>
-          </div>
-        </ScrollArea>
-        <SheetFooter className="mt-1 gap-2">
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Save Changes</Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
-  );
-}
-
-//
-export const OrderDetails: FC<{
+export const OrderDetails: React.FC<{
   orderId: string;
   asAdmin?: boolean;
   onNext?: () => void;
@@ -357,15 +174,15 @@ export const OrderDetails: FC<{
   onPrev = () => {},
   className,
 }) => {
-  const [openEditor, setOpenEditor] = useState(false);
+  const [_, setOpenEditor] = useState(false);
   const { data, isLoading, error } = useQuery({
     queryKey: ["order", orderId],
     queryFn: () => store.getOrder(orderId),
   });
 
-  const query = useQueryClient();
+  const queryClient = useQueryClient();
 
-  const { data: order } = data || {};
+  const order = data?.data;
 
   const markAsShipped = async () => {
     try {
@@ -373,15 +190,18 @@ export const OrderDetails: FC<{
 
       const { orderStatus = "Shipped", ...rest } = order;
 
+      if (orderStatus === "Shipped") return;
+
       const res = await store.editOrder(orderId, {
         orderStatus: "Shipped",
         ...rest,
       });
       toast({ title: `Success`, description: res.message });
+      queryClient.invalidateQueries({ queryKey: ["order", orderId] });
     } catch (error) {
       const _error = errorMessageAndStatus(error);
       toast({
-        title: `Something went wrong ${_error}`,
+        title: `Something went wrong ${_error.status}`,
         description: _error.message,
         variant: "destructive",
       });
@@ -391,13 +211,13 @@ export const OrderDetails: FC<{
   const cancelOrder = async () => {
     try {
       const res = await store.cancelOrder(orderId);
-      query.invalidateQueries({ queryKey: ["order", orderId] });
-      query.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["order", orderId] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
       toast({ title: `Success`, description: res.message });
     } catch (error) {
       const _error = errorMessageAndStatus(error);
       toast({
-        title: `Something went wrong ${_error}`,
+        title: `Something went wrong ${_error.status}`,
         description: _error.message,
         variant: "destructive",
       });
@@ -411,23 +231,6 @@ export const OrderDetails: FC<{
     } catch (error) {
       const _error = errorMessageAndStatus(error);
       toast({
-        title: `Something went wrong ${_error}`,
-        description: _error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const updateOrder = async (order: IOrder) => {
-    try {
-      await store.editOrder(order?._id || "", order);
-      toast({
-        title: "Order Updated",
-        description: "The order details have been successfully updated.",
-      });
-    } catch (error) {
-      const _error = errorMessageAndStatus(error);
-      toast({
         title: `Something went wrong ${_error.status}`,
         description: _error.message,
         variant: "destructive",
@@ -437,15 +240,20 @@ export const OrderDetails: FC<{
 
   if (isLoading) return <Loader />;
 
-  if (error) return <OrderNotFound />;
+  if (error || !order) return <OrderNotFound />;
 
   return (
     <Card className={cn("overflow-hidden", className)}>
       <CardHeader className="flex flex-row items-start bg-muted/50">
         <div className="grid gap-0.5">
           <CardTitle className="group flex items-center gap-2 text-lg">
-            Order {asAdmin ? order?._id.slice(0, 8) + ".." : order?._id}
+            Order {asAdmin ? order._id?.slice(0, 8) + ".." : order._id}
             <Button
+              onClick={() =>
+                navigator.clipboard
+                  .writeText(order._id || "")
+                  .then(() => toast({ title: "Order ID copied" }))
+              }
               size="icon"
               variant="outline"
               className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
@@ -455,7 +263,7 @@ export const OrderDetails: FC<{
             </Button>
           </CardTitle>
           <CardDescription>
-            Date: {new Date(order?.orderDate!).toLocaleDateString()}
+            Date: {new Date(order.orderDate).toLocaleDateString()}
           </CardDescription>
         </div>
         <div className="ml-auto flex items-center gap-1">
@@ -480,10 +288,11 @@ export const OrderDetails: FC<{
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setOpenEditor(true)}>
-                Edit
-              </DropdownMenuItem>
-
+              {asAdmin && (
+                <DropdownMenuItem onClick={() => setOpenEditor(true)}>
+                  Edit
+                </DropdownMenuItem>
+              )}
               {asAdmin && (
                 <DropdownMenuItem onClick={remindUserAboutOrder}>
                   Send Reminder
@@ -501,10 +310,12 @@ export const OrderDetails: FC<{
         <div className="grid gap-3">
           <div className="font-semibold">Order Details</div>
           <ul className="grid gap-3">
-            {order?.items.map((item) => (
+            {order.items.map((item) => (
               <li key={item._id} className="flex items-center justify-between">
-                <span className="text-muted-foreground">{item.name}</span>
-                <span>
+                <span className="text-muted-foreground">
+                  {item.name} ({item.colorPrefrence})
+                </span>
+                <span className="font-semibold">
                   {formatCurrency(item.discountedPrice || item.price)}
                 </span>
               </li>
@@ -513,48 +324,53 @@ export const OrderDetails: FC<{
           <Separator className="my-2" />
           <ul className="grid gap-3">
             <li className="flex items-center justify-between">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span>{formatCurrency(order?.totalAmount || 0)}</span>
+              <Text>Subtotal</Text>
+              <span>{formatCurrency(order.totalAmount)}</span>
             </li>
-            {order?.deliveryMethod === "waybill" && (
+            {
               <li className="flex items-center justify-between">
-                <span className="text-muted-foreground">Shipping</span>
-                <span>{formatCurrency(appConfigs.deliveryFee)}</span>
+                <Text>Delivery Fee</Text>
+                <span>{formatCurrency(order.deliveryFee || 0)}</span>
               </li>
-            )}
+            }
             <li className="flex items-center justify-between font-semibold">
               <span className="text-muted-foreground">Total</span>
-              <span>{formatCurrency(order?.totalAmount! + 30)}</span>
+              <span>{formatCurrency(order.totalAmount)}</span>
             </li>
           </ul>
         </div>
         <Separator className="my-4" />
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-3">
-            <div className="font-semibold">Shipping Information</div>
-            <address className="grid gap-0.5 not-italic text-muted-foreground">
-              {order?.shippingAddress.split(", ").map((line, index) => (
-                <span key={index}>{line}</span>
-              ))}
-            </address>
-          </div>
-          <div className="grid auto-rows-max gap-3">
-            <div className="font-semibold">Billing Information</div>
-            <div className="text-muted-foreground">
-              {order?.billingAddress === order?.shippingAddress
-                ? "Same as shipping address"
-                : order?.billingAddress}
-            </div>
-          </div>
+        <div className="grid gap-3">
+          <div className="font-semibold">Shipping Information</div>
+          <address className="grid gap-0.5 not-italic text-muted-foreground">
+            <span>{order?.address?.address}</span>
+            <span>
+              {order?.address?.lga}, {order?.address?.state}
+            </span>
+          </address>
         </div>
         <Separator className="my-4" />
         <div className="grid gap-3">
           <div className="font-semibold">Customer Information</div>
           <dl className="grid gap-3">
             <div className="flex items-center justify-between">
-              <dt className="text-muted-foreground">Customer ID</dt>
-              <dd>{order?.userId}</dd>
+              <dt className="text-muted-foreground">Name</dt>
+              <p className="font-semibold">{order?.customer?.name}</p>
             </div>
+            <div className="flex items-center justify-between">
+              <dt className="text-muted-foreground">Email</dt>
+              <p className="font-semibold">{order?.customer?.email}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <dt className="text-muted-foreground">Phone</dt>
+              <p className="font-semibold">{order?.customer?.phoneNumber}</p>
+            </div>
+            {order?.customer?.note && (
+              <div className="flex items-center justify-between">
+                <dt className="text-muted-foreground">Note</dt>
+                <p className="font-semibold">{order?.customer?.note}</p>
+              </div>
+            )}
           </dl>
         </div>
         <Separator className="my-4" />
@@ -564,7 +380,7 @@ export const OrderDetails: FC<{
             <div className="flex items-center justify-between">
               <dt className="flex items-center gap-1 text-muted-foreground">
                 <CreditCard className="h-4 w-4" />
-                {order?.paymentStatus}
+                {order.paymentStatus}
               </dt>
             </div>
           </dl>
@@ -576,20 +392,23 @@ export const OrderDetails: FC<{
             <div className="flex items-center justify-between">
               <dt className="flex items-center gap-1 text-muted-foreground">
                 <Truck className="h-4 w-4" />
-                {order?.orderStatus}
+                {order.orderStatus}
               </dt>
             </div>
           </dl>
         </div>
         <Separator className="my-4" />
-        <div className="grid gap-3">
+        <div className="grid gap-3 w-full">
           <div className="font-semibold">Payment Link</div>
           <dl className="grid gap-3">
             <div className="flex items-center justify-between">
               <dt className="flex items-center gap-1 text-muted-foreground">
                 <Link2Icon className="h-4 w-4" />
-                <Link to={order?.paymentLink || ""} className="line-clamp-1">
-                  {order?.paymentLink || "No link found."}
+                <Link
+                  to={order.paymentLink}
+                  className="line-clamp-1 w-[9rem] md:w-full"
+                >
+                  {order.paymentLink}
                 </Link>
               </dt>
             </div>
@@ -600,8 +419,8 @@ export const OrderDetails: FC<{
         <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
           <div className="text-xs text-muted-foreground">
             Updated{" "}
-            <time dateTime={new Date(order?.orderDate!).toISOString()}>
-              {order?.orderDate.toLocaleString()}
+            <time dateTime={new Date(order.orderDate).toISOString()}>
+              {new Date(order.orderDate).toLocaleString()}
             </time>
           </div>
           <Pagination className="ml-auto mr-0 w-auto">
@@ -622,12 +441,6 @@ export const OrderDetails: FC<{
           </Pagination>
         </CardFooter>
       )}
-      <AdminOrderEditSheet
-        order={order}
-        open={openEditor}
-        setOpen={setOpenEditor}
-        onSave={updateOrder}
-      />
     </Card>
   );
 };

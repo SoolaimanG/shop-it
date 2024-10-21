@@ -154,8 +154,10 @@ const DashBoard = () => {
                         }
                         className="h-[4rem] cursor-pointer"
                       >
-                        <TableCell>{order._id.slice(0, 12)}..</TableCell>
-                        <TableCell>{order.userId.slice(0, 12)}..</TableCell>
+                        <TableCell>{order?._id?.slice(0, 12)}..</TableCell>
+                        <TableCell>
+                          {order.customer?.email.slice(0, 12)}..
+                        </TableCell>
                         <TableCell>
                           {formatCurrency(order.totalAmount)}
                         </TableCell>

@@ -5,7 +5,7 @@ export enum PATHS {
   PRODUCTS = "/products/",
   MYACCOUNT = "/my-account/",
   SETTINGS = PATHS.MYACCOUNT + "#settings",
-  API_DOMAIN = "https://aunty-zaliya-website-backend.vercel.app/",
+  API_DOMAIN = "http://localhost:3000/",
   LOGIN = "#login",
   DASHBOARD = "/admin/dashboard/",
   CUSTOMERS = "/admin/customers/",
@@ -82,13 +82,16 @@ export type IUser = {
   avatar?: string;
   email: string;
   address: {
-    deliveryAddress: string;
-    isdefault: boolean;
+    state: string;
+    lga: string;
   };
   totalSpent: number;
   role: IUserRole;
   createdAt?: string;
-  recentOrder: IOrder[];
+  recentOrder: {
+    orders: number;
+    products: IOrder[];
+  };
 };
 
 export type AdminMessage = {
@@ -102,24 +105,31 @@ export type AdminMessage = {
 
 export type IPaymentStatus = "Pending" | "Paid" | "Failed";
 
-export type IDeliveryMethod = "waybill" | "pick_up";
-
 export type IOrderStatus = "Pending" | "Shipped" | "Delivered" | "Cancelled";
 
+export type IOrderProducts = (IProduct & { colorPrefrence: string })[];
+
 export type IOrder = {
-  _id: string;
-  userId: string;
-  items: IProduct[];
-  orderDate: Date;
+  _id?: string;
+  items: IOrderProducts;
+  orderDate: Date | string | number;
   totalAmount: number;
-  shippingAddress: string;
-  billingAddress: string;
+  address: {
+    state: string;
+    lga: string;
+    address: string;
+  };
   paymentStatus: IPaymentStatus;
   orderStatus: IOrderStatus;
-  deliveryMethod: IDeliveryMethod;
+  deliveryFee: number;
   paymentLink: string;
+  customer: {
+    name?: string;
+    phoneNumber?: string;
+    email: string;
+    note?: string;
+  };
 };
-
 export type IExpenseInsight = {
   collection: string;
   amountSpent: number;

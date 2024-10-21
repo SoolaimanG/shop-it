@@ -37,30 +37,33 @@ import { Text } from "@/components/text";
 import { Pie, PieChart, Label } from "recharts";
 import { EmptyProducts } from "@/components/empty-products";
 import { useStore } from "@/hooks/useStore";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { EditAddress } from "@/components/edit-address";
 import { DashboardIcon } from "@radix-ui/react-icons";
 import { Link } from "react-router-dom";
-import { IOrderStatus, PATHS } from "../../types";
+import { IOrder, IOrderStatus, PATHS } from "../../types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import { useToastError } from "@/hooks/use-toast-error";
+import { FC, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-function RecentOrders() {
-  const { user } = useStore();
+const MiniOrderDetail: FC<IOrder> = ({ ...order }) => {
+  const query = useQueryClient();
 
   const handleOrderAction = async (
     orderId: string,
     action: "cancel" | "complete"
   ) => {
     if (action === "complete") {
-      const order = user?.recentOrder.find((order) => order._id === orderId);
-      window.open(order?._id || "", "_blank");
+      window.open(order?.paymentLink || "", "_blank");
       return;
     }
 
     try {
       const res = await store.cancelOrder(orderId);
+      query.invalidateQueries({ queryKey: ["user-orders"] });
       toast({ title: "Success", description: res.message });
     } catch (error) {
       const _error = errorMessageAndStatus(error);
@@ -99,13 +102,87 @@ function RecentOrders() {
   };
 
   return (
+    <div key={order._id} className="mb-8 bg-gray-50 rounded-lg p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <Package className="h-6 w-6 text-gray-500" />
+          <span className="font-bold text-lg">Order #{order._id}</span>
+        </div>
+        <Badge
+          variant={order.paymentStatus === "Paid" ? "default" : "secondary"}
+          className="text-sm"
+        >
+          {order.paymentStatus}
+        </Badge>
+      </div>
+      <div className="text-sm text-gray-500 mb-3">
+        {new Date(order.orderDate).toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })}
+      </div>
+      <div
+        className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm ${getStatusColor(
+          order.orderStatus
+        )}`}
+      >
+        {getStatusIcon(order.orderStatus)}
+        <span>{order.orderStatus}</span>
+      </div>
+      <div className="mt-4 space-y-2">
+        {order.items.map((item) => (
+          <div
+            key={item._id}
+            className="flex justify-between text-sm bg-white p-2 rounded"
+          >
+            <span className="font-medium">{item.name}</span>
+            <span className="text-gray-600">
+              {formatCurrency(item.discountedPrice || item.price)}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 text-right">
+        <span className="text-sm text-gray-500">Total:</span>
+        <span className="ml-2 font-bold text-lg">
+          {formatCurrency(order.totalAmount)}
+        </span>
+      </div>
+      <div className="mt-6 flex space-x-3 justify-end">
+        {order.orderStatus === "Pending" && (
+          <>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => handleOrderAction(order._id!, "cancel")}
+            >
+              Cancel Order
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => handleOrderAction(order._id!, "complete")}
+            >
+              Complete Order
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+function RecentOrders() {
+  const { user } = useStore();
+
+  return (
     <Sheet>
       <SheetTrigger>
         <div className="bg-white p-4 rounded-lg shadow flex items-center">
           <Package className="h-10 w-10 text-blue-500 mr-4" />
           <div>
             <div className="text-2xl font-bold text-left">
-              {user?.recentOrder?.length || 0}
+              {user?.recentOrder?.orders || 0}
             </div>
             <div className="text-sm text-gray-500">Recent Orders</div>
           </div>
@@ -119,79 +196,8 @@ function RecentOrders() {
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className="h-[calc(100vh-120px)] pr-4 mt-6">
-          {user?.recentOrder?.map((order) => (
-            <div
-              key={order._id}
-              className="mb-8 bg-gray-50 rounded-lg p-6 shadow-sm"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <Package className="h-6 w-6 text-gray-500" />
-                  <span className="font-bold text-lg">Order #{order._id}</span>
-                </div>
-                <Badge
-                  variant={
-                    order.paymentStatus === "Paid" ? "default" : "secondary"
-                  }
-                  className="text-sm"
-                >
-                  {order.paymentStatus}
-                </Badge>
-              </div>
-              <div className="text-sm text-gray-500 mb-3">
-                {new Date(order.orderDate).toLocaleDateString(undefined, {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </div>
-              <div
-                className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm ${getStatusColor(
-                  order.orderStatus
-                )}`}
-              >
-                {getStatusIcon(order.orderStatus)}
-                <span>{order.orderStatus}</span>
-              </div>
-              <div className="mt-4 space-y-2">
-                {order.items.map((item) => (
-                  <div
-                    key={item._id}
-                    className="flex justify-between text-sm bg-white p-2 rounded"
-                  >
-                    <span className="font-medium">{item.name}</span>
-                    <span className="text-gray-600">
-                      {formatCurrency(item.discountedPrice || item.price)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 text-right">
-                <span className="text-sm text-gray-500">Total:</span>
-                <span className="ml-2 font-bold text-lg">
-                  {formatCurrency(order.totalAmount)}
-                </span>
-              </div>
-              <div className="mt-6 flex space-x-3 justify-end">
-                {order.orderStatus === "Pending" && (
-                  <>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleOrderAction(order._id, "cancel")}
-                    >
-                      Cancel Order
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => handleOrderAction(order._id, "complete")}
-                    >
-                      Complete Order
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
+          {user?.recentOrder?.products?.map((order) => (
+            <MiniOrderDetail key={order._id} {...order} />
           ))}
         </ScrollArea>
       </SheetContent>
@@ -200,8 +206,26 @@ function RecentOrders() {
 }
 
 const AllOrders = () => {
+  const [open, setOpen] = useState(false);
+
+  const { isLoading, data, error } = useQuery({
+    queryKey: ["user-orders"],
+    queryFn: () => store.getOrderHistories(20, false),
+    enabled: open,
+  });
+
+  useToastError(error);
+
+  const Loader = (
+    <div className="flex flex-col gap-3">
+      {[...Array(6)].map((_, idx) => (
+        <Skeleton key={idx} className="w-full h-[15rem]" />
+      ))}
+    </div>
+  );
+
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="outline" className="w-full justify-between">
           <div className="flex items-center">
@@ -215,7 +239,15 @@ const AllOrders = () => {
         <SheetHeader>
           <SheetTitle>All Orders</SheetTitle>
         </SheetHeader>
-        <EmptyProducts className="mt-10" />
+        {isLoading ? (
+          Loader
+        ) : !data?.data.length ? (
+          <EmptyProducts className="mt-10" />
+        ) : (
+          data.data.map((order) => (
+            <MiniOrderDetail key={order._id} {...order} />
+          ))
+        )}
       </SheetContent>
     </Sheet>
   );
@@ -392,10 +424,11 @@ export default function myAccount() {
                   <div>
                     <div className="text-2xl font-bold">Address</div>
                     <div
-                      title={user?.address?.deliveryAddress || "No address yet"}
+                      title={user?.address?.state || "No address yet"}
                       className="text-sm text-gray-500 line-clamp-1"
                     >
-                      {user?.address?.deliveryAddress || "No address yet"}
+                      {user?.address?.state + ", " + user?.address.lga ||
+                        "No address yet"}
                     </div>
                   </div>
                 </div>
@@ -407,8 +440,10 @@ export default function myAccount() {
                 <ExpenseInsight />
                 <EditAddress
                   key={user?._id}
-                  isdefault={user?.address.isdefault}
-                  address={user?.address?.deliveryAddress || "No address yet"}
+                  address={{
+                    state: user?.address.state || "",
+                    lga: user?.address?.lga || "",
+                  }}
                 />
                 {user?.role !== "user" && (
                   <Button asChild variant="outline">
