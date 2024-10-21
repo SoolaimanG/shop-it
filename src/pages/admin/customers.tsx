@@ -147,7 +147,7 @@ function CustomerDetail({
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {customer.recentOrder.length}
+                  {customer.recentOrder.products.length}
                 </div>
               </CardContent>
             </Card>
@@ -201,7 +201,7 @@ function CustomerDetail({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {customer.recentOrder.map((product) => (
+                    {customer.recentOrder.products.map((product) => (
                       <TableRow
                         key={product._id}
                         className="cursor-pointer hover:bg-muted/50"
