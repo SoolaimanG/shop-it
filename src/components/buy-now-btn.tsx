@@ -60,20 +60,14 @@ export function BuyNow({
       queryFn: store.getStates,
     });
 
-    const { isLoading: lgasLoading, data: _data } = useQuery({
-      queryKey: ["lgas", formState.state],
-      queryFn: () => store.getLGAs(formState.state),
+    const { isLoading: deliveryPriceLoading, data: __data } = useQuery({
+      queryKey: ["deliveryFee", formState.state, products.length],
+      queryFn: () =>
+        store.calculateDeliveryFee(formState.state, products.length),
       enabled: Boolean(formState.state),
     });
 
-    const { isLoading: deliveryPriceLoading, data: __data } = useQuery({
-      queryKey: ["deliveryFee", formState.state, formState.lga],
-      queryFn: () => store.calculateDeliveryFee(formState.state, formState.lga),
-      enabled: Boolean(formState.state && formState.lga),
-    });
-
     const { data: states } = data || {};
-    const { data: lgas } = _data || {};
     const { data: deliveryPrice } = __data || {};
 
     const handleInputChange = (
@@ -84,10 +78,6 @@ export function BuyNow({
 
     const handleStateChange = (value: string) => {
       setFormState((prev) => ({ ...prev, state: value, lga: "" }));
-    };
-
-    const handleLGAChange = (value: string) => {
-      setFormState((prev) => ({ ...prev, lga: value }));
     };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -210,31 +200,6 @@ export function BuyNow({
                   {state}
                 </SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label
-            htmlFor="lga"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Local Government Area
-          </label>
-          <Select
-            onValueChange={handleLGAChange}
-            value={formState.lga}
-            disabled={lgasLoading || !formState.state}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select an LGA" />
-            </SelectTrigger>
-            <SelectContent>
-              {formState.state &&
-                lgas?.map((lga) => (
-                  <SelectItem key={lga} value={lga}>
-                    {lga}
-                  </SelectItem>
-                ))}
             </SelectContent>
           </Select>
         </div>

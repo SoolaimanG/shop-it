@@ -6,7 +6,6 @@ import { FC } from "react";
 import { Text } from "./text";
 import { BuyNow } from "./buy-now-btn";
 import { Button } from "./ui/button";
-import { DollarSign } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { store } from "@/lib/utils";
 
@@ -66,7 +65,6 @@ export const BuySet = () => {
             className="absolute top-3 right-3"
           >
             <Button variant="secondary" size="sm" className="rounded-sm gap-1">
-              <DollarSign size={18} />
               Buy All
             </Button>
           </BuyNow>
