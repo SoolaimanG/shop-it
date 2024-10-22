@@ -65,7 +65,7 @@ export const Banner: FC<IBanner> = ({
             >
               <CardTitle
                 title={message}
-                className="text-4xl line-clamp-2 md:line-clamp-1"
+                className="text-4xl capitalize line-clamp-2 md:line-clamp-1"
               >
                 {message}
               </CardTitle>

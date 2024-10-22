@@ -56,7 +56,7 @@ export default function Home() {
     image: bestSelling?.imgs[0] || "",
     productId: bestSelling?._id || "",
     description: "This is for the description",
-    message: "Best Selling SuitCase 100%",
+    message: `Best Selling ${bestSelling?.collection} 100%`,
     color: bestSelling?.availableColors[0] || "",
     totalPrice: bestSelling?.discountedPrice || bestSelling?.price || 0,
   };
