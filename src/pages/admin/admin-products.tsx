@@ -52,7 +52,7 @@ export default function AdminProducts() {
 
   const { data, error } = useQuery({
     queryKey: ["admin-products"],
-    queryFn: () => store.getProducts(),
+    queryFn: () => store.getProducts(2000),
   });
 
   useToastError(error);

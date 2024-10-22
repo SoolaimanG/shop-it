@@ -81,7 +81,6 @@ const orderSchema = z.object({
   customerNote: z.string().optional(),
   address: z.string(),
   state: z.string(),
-  lga: z.string(),
 });
 
 export const CreateNewOrder = () => {
@@ -99,39 +98,36 @@ export const CreateNewOrder = () => {
       customerNote: "",
       address: "",
       state: "",
-      lga: "",
     },
   });
 
-  const { isLoading, data } = useQuery({
+  const {
+    isLoading,
+    data,
+    error: stateError,
+  } = useQuery({
     queryKey: ["states"],
     queryFn: store.getStates,
   });
 
-  const { isLoading: lgasLoading, data: _data } = useQuery({
-    queryKey: ["lgas", form.watch("state")],
-    queryFn: () => store.getLGAs(form.watch("state")),
+  const {
+    isLoading: deliveryPriceLoading,
+    data: __data,
+    error: deliveryFeeError,
+  } = useQuery({
+    queryKey: ["deliveryFee", form.watch("state"), selectedProducts.length],
+    queryFn: () =>
+      store.calculateDeliveryFee(form.watch("state"), selectedProducts.length),
     enabled: Boolean(form.watch("state")),
   });
 
-  const { isLoading: deliveryPriceLoading, data: __data } = useQuery({
-    queryKey: ["deliveryFee", form.watch("state"), form.watch("lga")],
-    queryFn: () =>
-      store.calculateDeliveryFee(form.watch("state"), form.watch("lga")),
-    enabled: Boolean(form.watch("state") && form.watch("lga")),
-  });
+  useToastError(stateError || deliveryFeeError);
 
   const { data: states } = data || {};
-  const { data: lgas } = _data || {};
   const { data: deliveryFee } = __data || {};
 
   const handleStateChange = (value: string) => {
     form.setValue("state", value);
-    form.setValue("lga", "");
-  };
-
-  const handleLGAChange = (value: string) => {
-    form.setValue("lga", value);
   };
 
   async function onSubmit(values: z.infer<typeof orderSchema>) {
@@ -148,7 +144,7 @@ export const CreateNewOrder = () => {
       const res = await store.createNewOrder({
         address: {
           state: values.state,
-          lga: values.lga,
+          lga: "",
           address: values.address,
         },
         customer: {
@@ -288,34 +284,6 @@ export const CreateNewOrder = () => {
                       {states?.map((state) => (
                         <SelectItem key={state} value={state}>
                           {state}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="lga"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Local Government Area</FormLabel>
-                  <Select
-                    onValueChange={handleLGAChange}
-                    value={field.value}
-                    disabled={lgasLoading || !form.getValues("state")}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select an LGA" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {lgas?.map((lga) => (
-                        <SelectItem key={lga} value={lga}>
-                          {lga}
                         </SelectItem>
                       ))}
                     </SelectContent>
