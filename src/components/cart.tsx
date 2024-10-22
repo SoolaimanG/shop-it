@@ -16,6 +16,8 @@ import { formatCurrency, Store } from "@/lib/utils";
 import { useToastError } from "@/hooks/use-toast-error";
 import { EmptyProducts } from "./empty-products";
 import { BuyNow } from "./buy-now-btn";
+import { Link } from "react-router-dom";
+import { PATHS } from "../../types";
 
 export const Cart = () => {
   const store = new Store();
@@ -29,6 +31,7 @@ export const Cart = () => {
   const { data, error } = useQuery({
     queryKey: ["calculate-items-price", cart],
     queryFn: () => store.calculateItemsPrice(productIds),
+    enabled: !!cart.length,
   });
 
   useToastError(error);
@@ -62,13 +65,18 @@ export const Cart = () => {
             <ScrollArea className="flex-grow">
               {cart.map((item) => (
                 <div key={item._id} className="flex items-center py-4 border-b">
-                  <Img
-                    src={item.imgs[0]}
-                    alt={item.name}
-                    width={80}
-                    height={80}
-                    className="rounded object-cover mr-4"
-                  />
+                  <Link
+                    to={PATHS.PRODUCTS + item._id}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Img
+                      src={item.imgs[0]}
+                      alt={item.name}
+                      width={80}
+                      height={80}
+                      className="rounded object-cover mr-4 cursor-pointer"
+                    />
+                  </Link>
                   <div className="flex-grow">
                     <h3 className="font-semibold">{item.name}</h3>
                     <p className="text-sm text-muted-foreground">
