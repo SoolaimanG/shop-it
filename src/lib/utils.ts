@@ -196,6 +196,14 @@ export class Store {
     return res.data;
   }
 
+  async userClaimToHaveMadePayment(orderId: string) {
+    const res: { data: apiResponse } = await api.post(
+      "/user-claim-to-have-make-payment/",
+      { orderId }
+    );
+    return res.data;
+  }
+
   // Authentication & User
   async authenticateUser(accessToken: string) {
     const res: { data: apiResponse<{ token: string } & IUser> } =

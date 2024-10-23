@@ -370,12 +370,10 @@ export default function ProductDetail() {
                   </Button>
                 </AddToCart>
                 <BuyNow
-                  products={[
-                    {
-                      color: selectedColor || product?.availableColors[0] || "",
-                      id: product?._id!,
-                    },
-                  ]}
+                  products={new Array(quantity).fill({
+                    color: selectedColor || product?.availableColors[0] || "",
+                    id: product?._id!,
+                  })}
                   totalPrice={product?.price}
                   className="flex-1"
                 >
@@ -438,12 +436,10 @@ export default function ProductDetail() {
             </Button>
           </AddToCart>
           <BuyNow
-            products={[
-              {
-                color: selectedColor || product?.availableColors[0] || "",
-                id: product?._id!,
-              },
-            ]}
+            products={new Array(quantity).fill({
+              color: selectedColor || product?.availableColors[0] || "",
+              id: product?._id!,
+            })}
             totalPrice={product?.price}
             className="flex-1"
           >

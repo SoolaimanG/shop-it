@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { Fragment, ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
+import ManualPayment from "./manual-payment";
 
 export function BuyNow({
   totalPrice = 99.99,
@@ -44,6 +45,13 @@ export function BuyNow({
   const { user } = useStore();
   const isMobile = useMediaQuery("(max-width:767px)");
   const [open, setOpen] = useState(false);
+  const [orderId, setOrderId] = useState("");
+
+  const onOpenChange = (open: boolean) => {
+    if (!open) {
+      setOrderId("");
+    }
+  };
 
   const OrderForm = () => {
     const [formState, setFormState] = useState({
@@ -80,8 +88,11 @@ export function BuyNow({
       setFormState((prev) => ({ ...prev, state: value, lga: "" }));
     };
 
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
+    const handleSubmit = async (
+      event?: React.FormEvent<HTMLFormElement>,
+      type?: "manual" | "auto"
+    ) => {
+      event?.preventDefault();
 
       const {
         phoneNumber,
@@ -111,7 +122,8 @@ export function BuyNow({
           },
         });
 
-        window.open(res.data.paymentLink, "_blank");
+        type === "manual" && setOrderId(res.data._id || "");
+        type === "auto" && window.open(res.data.paymentLink, "_blank");
         toast({
           title: "Order Placed Successfully",
           description: "You will be redirected to complete your payment.",
@@ -239,9 +251,19 @@ export function BuyNow({
             {formatCurrency(totalPrice + (deliveryPrice?.price || 0))}
           </span>
         </div>
-        <Button className="w-full" type="submit">
-          Make Payment
-        </Button>
+        <div className="flex flex-col-reverse md:flex-row gap-2">
+          <Button className="w-full" type="submit">
+            Complete with flutterwave
+          </Button>
+          <Button
+            onClick={() => handleSubmit(undefined, "manual")}
+            variant="outline"
+            className="w-full"
+            type="button"
+          >
+            Pay Manually
+          </Button>
+        </div>
       </form>
     );
   };
@@ -286,5 +308,27 @@ export function BuyNow({
     </Dialog>
   );
 
-  return isMobile ? <MobileSheet /> : <DesktopDialog />;
+  return (
+    <Fragment>
+      {isMobile ? <MobileSheet /> : <DesktopDialog />}
+      <ManualPayment
+        orderId={orderId}
+        open={Boolean(orderId)}
+        onOpenChange={onOpenChange}
+        amount={totalPrice}
+        accounts={[
+          {
+            bank: "Opay",
+            name: "Zaliya Suleiman",
+            number: "8036317990",
+          },
+          {
+            bank: "First Bank",
+            name: "Zaliya Suleiman",
+            number: "3006462764",
+          },
+        ]}
+      />
+    </Fragment>
+  );
 }
