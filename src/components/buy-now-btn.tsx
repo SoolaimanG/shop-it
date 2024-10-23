@@ -46,6 +46,7 @@ export function BuyNow({
   const isMobile = useMediaQuery("(max-width:767px)");
   const [open, setOpen] = useState(false);
   const [orderId, setOrderId] = useState("");
+  const [amount, setAmount] = useState(0);
 
   const onOpenChange = (open: boolean) => {
     if (!open) {
@@ -129,6 +130,7 @@ export function BuyNow({
           description: "You will be redirected to complete your payment.",
           variant: "default",
         });
+        setAmount(res.data.totalAmount || 0);
         setOpen(false);
       } catch (error) {
         const _error = errorMessageAndStatus(error);
@@ -315,7 +317,7 @@ export function BuyNow({
         orderId={orderId}
         open={Boolean(orderId)}
         onOpenChange={onOpenChange}
-        amount={totalPrice}
+        amount={amount}
         accounts={[
           {
             bank: "Opay",

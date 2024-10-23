@@ -68,7 +68,7 @@ export default function ManualPayment({
   };
 
   const ScrollableContent = ({ children }: { children: React.ReactNode }) => (
-    <div className="h-[calc(100vh-10rem)] overflow-y-auto pr-4 -mr-4 scrollbar-hide p-4 md:p-0">
+    <div className="h-[calc(100vh-10rem)] overflow-y-auto scrollbar-hide p-4 md:p-0">
       {children}
     </div>
   );
