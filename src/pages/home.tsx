@@ -55,7 +55,7 @@ export default function Home() {
   } = {
     image: bestSelling?.imgs[0] || "",
     productId: bestSelling?._id || "",
-    description: "This is for the description",
+    description: bestSelling?.description || "This is for the description",
     message: `Best Selling ${bestSelling?.collection} 100%`,
     color: bestSelling?.availableColors[0] || "",
     totalPrice: bestSelling?.discountedPrice || bestSelling?.price || 0,
@@ -93,7 +93,7 @@ export default function Home() {
           <ShopByCategory />
         </Section>
         <Section header="Suggested For You">
-          <SuggestedForYou size={15} />
+          <SuggestedForYou size={25} />
         </Section>
         <Section header="Top Sellers">
           <TopSellers />

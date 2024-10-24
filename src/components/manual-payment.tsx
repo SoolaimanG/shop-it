@@ -16,6 +16,8 @@ import { CopyIcon, CheckIcon, X } from "lucide-react";
 import { useMediaQuery } from "@uidotdev/usehooks";
 import { formatCurrency, store } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { appConfigs } from "../../data";
+import queryString from "query-string";
 
 interface Account {
   name: string;
@@ -57,6 +59,14 @@ export default function ManualPayment({
         description:
           "We have sent a notification to the admin and your order will be proccessed once we verify your payment",
       });
+
+      const q = queryString.stringify({
+        text: `Hello, I made a payment for item(s) with the orderId (${orderId}), can you please confirm my order. Thank you`,
+      });
+
+      const whatsAppLink = `https://wa.me/${appConfigs.supportEmails[2]}?${q}`;
+
+      window.open(whatsAppLink, "_blank");
       onOpenChange(false);
     } catch (error) {
       toast({

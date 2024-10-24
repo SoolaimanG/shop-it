@@ -87,7 +87,11 @@ export const appConfigs = {
     "Inclusive Sizing: Our products cater to all body types and sizes.",
     "Customer-First Approach: Your satisfaction is our top priority.",
   ],
-  supportEmails: ["suleimaangee@gmail.com", "zaliyasule@gmail.com"],
+  supportEmails: [
+    "suleimaangee@gmail.com",
+    "zaliyasule@gmail.com",
+    "+2348036317990",
+  ],
   deliveryFee: 5000,
 };
 

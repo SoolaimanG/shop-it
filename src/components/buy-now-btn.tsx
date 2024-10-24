@@ -143,7 +143,7 @@ export function BuyNow({
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={(e) => handleSubmit(e, "auto")} className="space-y-4">
         <div>
           <label
             htmlFor="fullName"
