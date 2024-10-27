@@ -444,3 +444,204 @@ export const OrderDetails: React.FC<{
     </Card>
   );
 };
+
+//import React from 'react'
+//import { format } from 'date-fns'
+//import { ChevronRight, Download } from 'lucide-react'
+//
+//import { Badge } from "@/components/ui/badge"
+//import { Button } from "@/components/ui/button"
+//import { Progress } from "@/components/ui/progress"
+//import { Separator } from "@/components/ui/separator"
+//import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+//
+//interface IProduct {
+//  name: string;
+//  price: number;
+//  description: string;
+//  image: string;
+//}
+//
+//interface IPaymentStatus {
+//  Pending: "bg-yellow-100 text-yellow-800";
+//  Paid: "bg-green-100 text-green-800";
+//  Failed: "bg-red-100 text-red-800";
+//}
+//
+//interface IOrderStatus {
+//  Pending: "bg-yellow-100 text-yellow-800";
+//  Shipped: "bg-blue-100 text-blue-800";
+//  Delivered: "bg-green-100 text-green-800";
+//  Cancelled: "bg-red-100 text-red-800";
+//}
+//
+//const paymentStatusStyles: IPaymentStatus = {
+//  Pending: "bg-yellow-100 text-yellow-800",
+//  Paid: "bg-green-100 text-green-800",
+//  Failed: "bg-red-100 text-red-800"
+//}
+//
+//const orderStatusStyles: IOrderStatus = {
+//  Pending: "bg-yellow-100 text-yellow-800",
+//  Shipped: "bg-blue-100 text-blue-800",
+//  Delivered: "bg-green-100 text-green-800",
+//  Cancelled: "bg-red-100 text-red-800"
+//}
+//
+//export default function OrderDetails({ order }: { order: IOrder }) {
+//  const formatDate = (date: Date | string | number) => {
+//    return format(new Date(date), 'MMMM dd, yyyy')
+//  }
+//
+//  const getOrderStatusStep = (status: IOrderStatus) => {
+//    switch (status) {
+//      case 'Pending':
+//        return 25;
+//      case 'Shipped':
+//        return 50;
+//      case 'Delivered':
+//        return 100;
+//      default:
+//        return 0;
+//    }
+//  }
+//
+//  return (
+//    <div className="container mx-auto px-4 py-8 bg-white">
+//      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+//        <h1 className="text-3xl font-bold mb-2 md:mb-0 text-black">
+//          Order #{order._id}
+//        </h1>
+//        <div className="flex flex-col md:flex-row md:items-center">
+//          <p className="text-gray-600 mr-4">
+//            Order placed {formatDate(order.orderDate)}
+//          </p>
+//          <Button variant="outline" className="mt-2 md:mt-0">
+//            View invoice <ChevronRight className="h-4 w-4 ml-1" />
+//          </Button>
+//        </div>
+//      </div>
+//
+//      <Separator className="my-6" />
+//
+//      <div className="mb-8">
+//        <h2 className="text-2xl font-semibold mb-4">Order Status</h2>
+//        <Progress value={getOrderStatusStep(order.orderStatus)} className="w-full" />
+//        <div className="flex justify-between mt-2">
+//          <span className="text-sm">Pending</span>
+//          <span className="text-sm">Shipped</span>
+//          <span className="text-sm">Delivered</span>
+//        </div>
+//        <div className="mt-4">
+//          <Badge className={orderStatusStyles[order.orderStatus]}>
+//            Current Status: {order.orderStatus}
+//          </Badge>
+//        </div>
+//      </div>
+//
+//      <Separator className="my-6" />
+//
+//      <div className="mb-8">
+//        <h2 className="text-2xl font-semibold mb-4">Order Items</h2>
+//        {order.items.map((item, index) => (
+//          <div key={index}>
+//            <div className="flex flex-col md:flex-row mb-4">
+//              <div className="w-full md:w-1/4 mb-4 md:mb-0">
+//                <img src={item.image} alt={item.name} className="w-full h-auto object-cover rounded-lg" />
+//              </div>
+//              <div className="w-full md:w-3/4 md:pl-6">
+//                <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
+//                <p className="text-lg font-bold mb-2">${item.price.toFixed(2)}</p>
+//                <p className="text-gray-600 mb-2">{item.description}</p>
+//                <p className="text-sm text-gray-500">Color: {item.colorPrefrence}</p>
+//              </div>
+//            </div>
+//            {index < order.items.length - 1 && <Separator className="my-4" />}
+//          </div>
+//        ))}
+//      </div>
+//
+//      <Separator className="my-6" />
+//
+//      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+//        <div>
+//          <h2 className="text-2xl font-semibold mb-4">Order Summary</h2>
+//          <div className="space-y-2">
+//            <div className="flex justify-between">
+//              <span>Subtotal</span>
+//              <span>${order.totalAmount.toFixed(2)}</span>
+//            </div>
+//            <div className="flex justify-between">
+//              <span>Delivery Fee</span>
+//              <span>${order.deliveryFee.toFixed(2)}</span>
+//            </div>
+//            <Separator className="my-2" />
+//            <div className="flex justify-between font-bold">
+//              <span>Total</span>
+//              <span>${(order.totalAmount + order.deliveryFee).toFixed(2)}</span>
+//            </div>
+//          </div>
+//          <div className="mt-4">
+//            <Badge className={paymentStatusStyles[order.paymentStatus]}>
+//              Payment Status: {order.paymentStatus}
+//            </Badge>
+//          </div>
+//          {order.paymentStatus === 'Pending' && (
+//            <Button className="w-full mt-4">
+//              Pay Now
+//            </Button>
+//          )}
+//        </div>
+//
+//        <div>
+//          <h2 className="text-2xl font-semibold mb-4">Delivery Address</h2>
+//          <p>{order.customer.name}</p>
+//          <p>{order.address.address}</p>
+//          <p>{order.address.lga}, {order.address.state}</p>
+//          <Separator className="my-2" />
+//          <p>Email: {order.customer.email}</p>
+//          <p>Phone: {order.customer.phoneNumber}</p>
+//          {order.customer.note && (
+//            <>
+//              <Separator className="my-2" />
+//              <p>Note: {order.customer.note}</p>
+//            </>
+//          )}
+//        </div>
+//      </div>
+//
+//      <Separator className="my-6" />
+//
+//      <div>
+//        <h2 className="text-2xl font-semibold mb-4">Invoice</h2>
+//        <Table>
+//          <TableHeader>
+//            <TableRow>
+//              <TableHead>Description</TableHead>
+//              <TableHead className="text-right">Amount</TableHead>
+//            </TableRow>
+//          </TableHeader>
+//          <TableBody>
+//            {order.items.map((item, index) => (
+//              <TableRow key={index}>
+//                <TableCell>{item.name}</TableCell>
+//                <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+//              </TableRow>
+//            ))}
+//            <TableRow>
+//              <TableCell>Delivery Fee</TableCell>
+//              <TableCell className="text-right">${order.deliveryFee.toFixed(2)}</TableCell>
+//            </TableRow>
+//            <TableRow>
+//              <TableCell className="font-bold">Total</TableCell>
+//              <TableCell className="text-right font-bold">${(order.totalAmount + order.deliveryFee).toFixed(2)}</TableCell>
+//            </TableRow>
+//          </TableBody>
+//        </Table>
+//        <Button variant="outline" className="w-full mt-4">
+//          <Download className="mr-2 h-4 w-4" /> Download Invoice
+//        </Button>
+//      </div>
+//    </div>
+//  )
+//}
