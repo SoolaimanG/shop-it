@@ -173,7 +173,6 @@ function CustomerDetail({
               <EditAddress
                 address={{
                   state: customer.address.state,
-                  lga: customer.address.lga,
                 }}
                 asAdmin
                 userId={customer._id}
@@ -184,9 +183,7 @@ function CustomerDetail({
                 </Button>
               </EditAddress>
             </div>
-            <p className="text-sm">
-              {customer.address.state + ", " + customer.address.lga}
-            </p>
+            <p className="text-sm">{customer.address.state}</p>
           </div>
 
           <div className="space-y-2">
