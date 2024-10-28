@@ -12,7 +12,6 @@ import { FaFacebook } from "@react-icons/all-files/fa/FaFacebook";
 import { IoLogoWhatsapp } from "@react-icons/all-files/io/IoLogoWhatsapp";
 import { MdEmail } from "@react-icons/all-files/md/MdEmail";
 import { z } from "zod";
-import { sendMailProps } from "@/lib/utils";
 
 export const navLinks = [
   {
