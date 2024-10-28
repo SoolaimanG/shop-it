@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Img } from "react-image";
 import {
   Star,
@@ -19,20 +19,19 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScreenSize } from "@/components/screen-size";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn, desc, formatCurrency, sendMailProps, store } from "@/lib/utils";
+import { cn, desc, formatCurrency, openWhatsApp, store } from "@/lib/utils";
 import { AddToCart } from "@/components/add-to-cart-btn";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useToastError } from "@/hooks/use-toast-error";
 import { IProduct } from "../../types";
 import { MiniFooter } from "@/components/mini-footer";
 import { SuggestedForYou } from "@/components/suggested-for-you";
 import { BuyNow } from "@/components/buy-now-btn";
-import { appConfigs } from "../../data";
 
 function ProductLoading() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto mt-10 px-4 py-8">
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-4">
           <Skeleton className="w-full aspect-square rounded-lg" />
@@ -118,6 +117,10 @@ export default function ProductDetail() {
   const [selectedColor, setSelectedColor] = useState(
     product?.availableColors[0]
   );
+
+  useEffect(() => {
+    setSelectedColor(data?.data.availableColors[0] || "");
+  }, [data?.data]);
 
   useToastError(error);
 
@@ -408,10 +411,8 @@ export default function ProductDetail() {
                   <h3 className="md:text-lg text-sm md:font-semibold">
                     Products you may like
                   </h3>
-                  <Button variant="outline">
-                    <Link to={sendMailProps(appConfigs.supportEmails[0])}>
-                      Contact Suppport
-                    </Link>
+                  <Button onClick={() => openWhatsApp()} variant="outline">
+                    Contact Support
                   </Button>
                 </div>
                 <SuggestedForYou size={9} category={product?.collection} />

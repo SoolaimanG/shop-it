@@ -1,6 +1,6 @@
-import { sendMailProps } from "@/lib/utils";
-import { appConfigs } from "../../data";
+import { openWhatsApp } from "@/lib/utils";
 import { FC } from "react";
+import { Button } from "./ui/button";
 
 export const MiniFooter: FC<{ subject?: string }> = ({
   subject = "Something is wrong with my order",
@@ -10,12 +10,13 @@ export const MiniFooter: FC<{ subject?: string }> = ({
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <p className="text-center text-sm text-gray-500">
           Need help?{" "}
-          <a
-            href={sendMailProps(appConfigs.supportEmails[0], subject)}
+          <Button
+            variant="link"
+            onClick={() => openWhatsApp(subject)}
             className="font-medium text-indigo-600 hover:text-indigo-500"
           >
             Contact our support team
-          </a>
+          </Button>
         </p>
       </div>
     </footer>

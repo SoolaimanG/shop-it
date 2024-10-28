@@ -45,7 +45,6 @@ import { useQuery } from "@tanstack/react-query";
 
 const addressSchema = z.object({
   state: z.string(),
-  lga: z.string(),
 });
 
 const btn = (
@@ -59,7 +58,7 @@ const btn = (
 );
 
 export const EditAddress: FC<{
-  address: { state: string; lga: string };
+  address: { state: string };
   children?: ReactNode;
   userId?: string;
   asAdmin?: boolean;
@@ -77,14 +76,7 @@ export const EditAddress: FC<{
     queryFn: store.getStates,
   });
 
-  const { isLoading: lgasLoading, data: _data } = useQuery({
-    queryKey: ["lgas", form.watch("state")],
-    queryFn: () => store.getLGAs(form.watch("state")),
-    enabled: Boolean(form.watch("state")),
-  });
-
   const { data: states } = data || {};
-  const { data: lgas } = _data || {};
 
   const onSubmit = async (address: z.infer<typeof addressSchema>) => {
     try {
@@ -145,33 +137,6 @@ export const EditAddress: FC<{
                   {states?.map((state) => (
                     <SelectItem key={state} value={state}>
                       {state}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="lga"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>LGA</FormLabel>
-              <Select
-                disabled={lgasLoading && !form.watch("state")}
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an LGA" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {lgas?.map((lga) => (
-                    <SelectItem key={lga} value={lga}>
-                      {lga}
                     </SelectItem>
                   ))}
                 </SelectContent>

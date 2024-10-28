@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { cn, store } from "@/lib/utils";
+import { store } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 
 import { Product } from "@/components/product";
@@ -20,28 +20,21 @@ import queryString from "query-string";
 
 const Products = () => {
   const [page, setPage] = useState(10);
-  const [filter, setFilter] = useState<IProductFilter | null>(null);
+  const [filter, setFilter] = useState<{ name?: string; id?: IProductFilter }>({
+    name: undefined,
+    id: undefined,
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const { collection } = queryString.parse(location.search) as {
     collection: string;
   };
-  const searchInput = (className?: string) => (
-    <Input
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-      placeholder="Search for products"
-      className={cn(className, "")}
-    />
-  );
 
   const { data, isLoading } = useQuery({
-    queryKey: ["products", page, searchTerm, collection],
-    queryFn: () => store.getProducts(page, undefined, searchTerm, collection),
+    queryKey: ["products", page, searchTerm, collection, filter],
+    queryFn: () => store.getProducts(page, filter.id, searchTerm, collection),
   });
 
   const { data: products } = data || {};
-
-  if (isLoading) return <SkeletonLoader size={20} />;
 
   return (
     <div className="w-screen pb-5">
@@ -52,29 +45,43 @@ const Products = () => {
               All Products ({products?.length || 0})
             </h2>
             <div className="flex items-center gap-2">
-              {searchInput("md:block hidden")}
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search for products"
+                className={"md:block hidden"}
+              />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button className="gap-2">
-                    {filter || "Sort Products"} <ChevronDown size={18} />
+                    {filter.name || "Sort Products"} <ChevronDown size={18} />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuGroup>
-                    {productsFilters.map((filter) => (
-                      <DropdownMenuItem
-                        key={filter.id}
-                        onClick={() => setFilter(filter.id)}
-                      >
-                        <span>{filter.name}</span>
-                      </DropdownMenuItem>
-                    ))}
+                    {isLoading ? (
+                      <SkeletonLoader size={20} />
+                    ) : (
+                      productsFilters.map((filter) => (
+                        <DropdownMenuItem
+                          key={filter.id}
+                          onClick={() => setFilter(filter)}
+                        >
+                          <span>{filter.name}</span>
+                        </DropdownMenuItem>
+                      ))
+                    )}
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </header>
-          {searchInput("mt-3 block md:hidden")}
+          <Input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search for products"
+            className={"mt-3 block md:hidden"}
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
             {products?.map((product, idx) => (
               <Product key={idx} {...product} />

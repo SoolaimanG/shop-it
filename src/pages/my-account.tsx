@@ -182,7 +182,7 @@ function RecentOrders() {
           <Package className="h-10 w-10 text-blue-500 mr-4" />
           <div>
             <div className="text-2xl font-bold text-left">
-              {user?.recentOrder?.orders || 0}
+              {user?.recentOrder?.products.length || 0}
             </div>
             <div className="text-sm text-gray-500">Recent Orders</div>
           </div>
@@ -427,8 +427,7 @@ export default function myAccount() {
                       title={user?.address?.state || "No address yet"}
                       className="text-sm text-gray-500 line-clamp-1"
                     >
-                      {user?.address?.state + ", " + user?.address.lga ||
-                        "No address yet"}
+                      {user?.address?.state || "No address yet"}
                     </div>
                   </div>
                 </div>
@@ -442,7 +441,6 @@ export default function myAccount() {
                   key={user?._id}
                   address={{
                     state: user?.address.state || "",
-                    lga: user?.address?.lga || "",
                   }}
                 />
                 {user?.role !== "user" && (

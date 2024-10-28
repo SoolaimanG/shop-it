@@ -144,7 +144,6 @@ export const CreateNewOrder = () => {
       const res = await store.createNewOrder({
         address: {
           state: values.state,
-          lga: "",
           address: values.address,
         },
         customer: {
@@ -357,7 +356,7 @@ const ThisWeekCard: FC<{
 const AdminOrder = () => {
   const n = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
-  const ordersPerPage = 10;
+  const ordersPerPage = 7;
 
   const { data: dashboard, error: dashboardError } = useQuery({
     queryKey: ["dashboard-content"],
@@ -366,7 +365,7 @@ const AdminOrder = () => {
 
   const { data: orderData, error: ordersError } = useQuery({
     queryKey: ["orders"],
-    queryFn: () => store.getOrderHistories(),
+    queryFn: () => store.getOrderHistories(300, true),
   });
 
   useToastError(dashboardError || ordersError);
@@ -531,8 +530,8 @@ const AdminOrder = () => {
                           className="h-[3rem] cursor-pointer"
                         >
                           <TableCell>
-                            <div className="font-medium">
-                              {order?.customer?.email?.slice(0, 17)}...
+                            <div className="font-medium line-clamp-1">
+                              {order?.customer?.name || "Anonymous"}
                             </div>
                             <div
                               title={order?.customer?.email}

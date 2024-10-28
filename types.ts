@@ -83,7 +83,6 @@ export type IUser = {
   email: string;
   address: {
     state: string;
-    lga: string;
   };
   totalSpent: number;
   role: IUserRole;
@@ -116,7 +115,6 @@ export type IOrder = {
   totalAmount: number;
   address: {
     state: string;
-    lga: string;
     address: string;
   };
   paymentStatus: IPaymentStatus;

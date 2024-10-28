@@ -21,6 +21,7 @@ import {
   IUserRole,
   PATHS,
 } from "../../types";
+import { appConfigs } from "../../data";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -76,7 +77,9 @@ export const errorMessageAndStatus = (error: any) => {
   return { message, status, data };
 };
 
-export const api = axios.create({ baseURL: PATHS.API_DOMAIN });
+export const api = axios.create({
+  baseURL: PATHS.API_DOMAIN,
+});
 
 export const getCallbackUrl = () => {
   const callbackUrl = queryString.parse(location.search) as {
@@ -302,7 +305,7 @@ export class Store {
     address,
     userId,
   }: {
-    address: { state: string; lga: string };
+    address: { state: string };
     asAdmin?: boolean;
     userId?: string;
   }) {
@@ -547,4 +550,14 @@ export const desc = (name: string) => {
 
 Whether you're looking for a product to enhance your daily routine or add a touch of sophistication to your collection,  delivers unmatched versatility. Its sleek design complements any setting, while its robust construction ensures it withstands the test of time.
  `;
+};
+
+export const openWhatsApp = (text?: string) => {
+  const q = queryString.stringify({
+    text,
+  });
+
+  const whatsAppLink = `https://wa.me/${appConfigs.supportEmails[2]}?${q}`;
+
+  window.open(whatsAppLink, "_blank");
 };

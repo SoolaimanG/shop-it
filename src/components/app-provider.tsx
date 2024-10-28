@@ -145,7 +145,8 @@ export const AppProvider: FC<{
 
   useEffect(() => {
     initializeCart(items);
-  }, []);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [location.pathname]);
 
   return (
     <Fragment>

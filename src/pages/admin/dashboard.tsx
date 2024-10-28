@@ -38,7 +38,7 @@ const DashBoard = () => {
 
   const { data: _d } = useQuery({
     queryKey: ["orders"],
-    queryFn: () => store.getOrderHistories(20, true),
+    queryFn: () => store.getOrderHistories(5, true),
   });
 
   const { data: recentOrders } = _d || {};

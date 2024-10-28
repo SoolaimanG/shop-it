@@ -20,9 +20,9 @@ import { z } from "zod";
 import { productSchema } from "../../../data";
 import { errorMessageAndStatus, Store, uploadImage } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
-import { IProduct } from "../../../types";
+import { IProduct, PATHS } from "../../../types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToastError } from "@/hooks/use-toast-error";
 import queryString from "query-string";
@@ -83,6 +83,7 @@ export default function CreateProductPage() {
   const location = useLocation();
   const hash = queryString.parse(location.hash);
   const isEditingMode = Object.keys(hash)[0] !== "new";
+  const query = useQueryClient();
 
   const store = new Store();
   const { id } = useParams() as { id: string };
@@ -99,6 +100,7 @@ export default function CreateProductPage() {
 
   const { data: product } = data || {};
 
+  const n = useNavigate();
   const [creatingProduct, setCreatingProduct] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
@@ -204,6 +206,9 @@ export default function CreateProductPage() {
       });
       setFiles([]);
       setImages([]);
+      query.invalidateQueries({ queryKey: ["admin-products"] });
+
+      isEditingMode && n(PATHS.ADMINPRODUCTS);
     } catch (error) {
       const _error = errorMessageAndStatus(error);
       toast({

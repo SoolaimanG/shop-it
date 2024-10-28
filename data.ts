@@ -12,6 +12,7 @@ import { FaFacebook } from "@react-icons/all-files/fa/FaFacebook";
 import { IoLogoWhatsapp } from "@react-icons/all-files/io/IoLogoWhatsapp";
 import { MdEmail } from "@react-icons/all-files/md/MdEmail";
 import { z } from "zod";
+import { sendMailProps } from "@/lib/utils";
 
 export const navLinks = [
   {
@@ -58,24 +59,6 @@ export const newsLetterData = {
   ],
 };
 
-export const socialMediaLinks = [
-  {
-    icon: FaFacebook,
-    name: "Reach Out On FaceBook",
-    link: "",
-  },
-  {
-    icon: IoLogoWhatsapp,
-    name: "Chat with us on whatsApp",
-    link: "",
-  },
-  {
-    icon: MdEmail,
-    name: "Send us an email",
-    link: "",
-  },
-];
-
 export const appConfigs = {
   name: "ShopIt",
   establishmentDate: 2024,
@@ -94,6 +77,24 @@ export const appConfigs = {
   ],
   deliveryFee: 5000,
 };
+
+export const socialMediaLinks = [
+  {
+    icon: FaFacebook,
+    name: "Reach Out On FaceBook",
+    link: "",
+  },
+  {
+    icon: IoLogoWhatsapp,
+    name: `WhatsApp`,
+    link: `https://wa.me/${appConfigs.supportEmails[2]}?text=Hello`,
+  },
+  {
+    icon: MdEmail,
+    name: "Send us an email",
+    link: `mailto:${appConfigs.supportEmails[1]}`,
+  },
+];
 
 export type IProductFilter = "001" | "002" | "003";
 

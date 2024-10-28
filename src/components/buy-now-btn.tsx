@@ -60,7 +60,6 @@ export function BuyNow({
       email: user?.email || "",
       phoneNumber: "",
       state: user?.address.state || "",
-      lga: user?.address.lga || "",
       note: "",
     });
 
@@ -86,7 +85,7 @@ export function BuyNow({
     };
 
     const handleStateChange = (value: string) => {
-      setFormState((prev) => ({ ...prev, state: value, lga: "" }));
+      setFormState((prev) => ({ ...prev, state: value }));
     };
 
     const handleSubmit = async (
@@ -95,14 +94,7 @@ export function BuyNow({
     ) => {
       event?.preventDefault();
 
-      const {
-        phoneNumber,
-        fullName: name,
-        note,
-        email,
-        state,
-        lga,
-      } = formState;
+      const { phoneNumber, fullName: name, note, email, state } = formState;
 
       try {
         const res = await store.createNewOrder({
@@ -111,9 +103,8 @@ export function BuyNow({
             color: product.color,
           })),
           address: {
-            address: state + lga,
+            address: state,
             state,
-            lga,
           },
           customer: {
             email,

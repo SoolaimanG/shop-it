@@ -26,7 +26,7 @@ export const Footer = () => {
         </div>
         <div className="flex items-center gap-12">
           {socialMediaLinks.map((link, idx) => (
-            <Link key={idx} to={link.link} className="w-fit">
+            <a key={idx} href={link.link} className="w-fit">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
@@ -38,7 +38,7 @@ export const Footer = () => {
                   <TooltipContent>{link.name}</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            </Link>
+            </a>
           ))}
         </div>
         <Text className="font-semibold">
