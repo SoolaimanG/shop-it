@@ -84,7 +84,7 @@ const Products = () => {
           />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
             {products?.products?.map((product, idx) => (
-              <Product key={idx} {...product} />
+              <Product key={idx} {...product} showBtn />
             ))}
           </div>
           <div className="flex items-center justify-center w-full mt-3">

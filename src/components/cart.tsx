@@ -16,10 +16,11 @@ import { formatCurrency, Store } from "@/lib/utils";
 import { useToastError } from "@/hooks/use-toast-error";
 import { EmptyProducts } from "./empty-products";
 import { BuyNow } from "./buy-now-btn";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PATHS } from "../../types";
 
 export const Cart = () => {
+  const n = useNavigate();
   const store = new Store();
   const [isOpen, setIsOpen] = useState(false);
   const { removeItemFromCart, updateItemQuantity, cart } = useStore();
@@ -59,7 +60,18 @@ export const Cart = () => {
             showFooter={false}
             header="No Item In Cart"
             message="When you add an item to your cart, it will appear here. Start adding items and amazing products!"
-          />
+          >
+            <Button
+              onClick={() => {
+                n(PATHS.PRODUCTS);
+                setIsOpen(false);
+              }}
+              className="w-full"
+              size="lg"
+            >
+              Start Shopping
+            </Button>
+          </EmptyProducts>
         ) : (
           <div className="flex-grow overflow-hidden flex flex-col">
             <ScrollArea className="flex-grow">
