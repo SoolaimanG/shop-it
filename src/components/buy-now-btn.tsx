@@ -31,6 +31,9 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import ManualPayment from "./manual-payment";
 import { appConfigs } from "../../data";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { Terminal } from "lucide-react";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export function BuyNow({
   totalPrice = 99.99,
@@ -239,6 +242,13 @@ export function BuyNow({
             </span>
           )}
         </div>
+        <Alert variant="destructive">
+          <ExclamationTriangleIcon className="h-4 w-4" />
+          <AlertTitle>Delivery Time</AlertTitle>
+          <AlertDescription>
+            Note: Delivery takes up to 5-7 days depending on your location.
+          </AlertDescription>
+        </Alert>
         <div className="flex justify-between items-center">
           <span className="text-lg font-semibold">Total:</span>
           <span className="text-lg font-bold">
