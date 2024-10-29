@@ -32,7 +32,6 @@ import { useQuery } from "@tanstack/react-query";
 import ManualPayment from "./manual-payment";
 import { appConfigs } from "../../data";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { Terminal } from "lucide-react";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export function BuyNow({
