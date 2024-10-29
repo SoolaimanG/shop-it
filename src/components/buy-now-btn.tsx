@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import ManualPayment from "./manual-payment";
+import { appConfigs } from "../../data";
 
 export function BuyNow({
   totalPrice = 99.99,
@@ -245,12 +246,18 @@ export function BuyNow({
           </span>
         </div>
         <div className="flex flex-col-reverse md:flex-row gap-2">
-          <Button className="w-full" type="submit">
-            Complete with flutterwave
-          </Button>
+          {totalPrice < appConfigs.maxPaymentForFlutterwave && (
+            <Button className="w-full" type="submit">
+              Pay With Flutterwave
+            </Button>
+          )}
           <Button
             onClick={() => handleSubmit(undefined, "manual")}
-            variant="outline"
+            variant={
+              totalPrice < appConfigs.maxPaymentForFlutterwave
+                ? "outline"
+                : "default"
+            }
             className="w-full"
             type="button"
           >
@@ -309,18 +316,7 @@ export function BuyNow({
         open={Boolean(orderId)}
         onOpenChange={onOpenChange}
         amount={amount}
-        accounts={[
-          {
-            bank: "Opay",
-            name: "Zaliya Suleiman",
-            number: "8036317990",
-          },
-          {
-            bank: "First Bank",
-            name: "Zaliya Suleiman",
-            number: "3006462764",
-          },
-        ]}
+        accounts={appConfigs.shopAccountNumbers}
       />
     </Fragment>
   );

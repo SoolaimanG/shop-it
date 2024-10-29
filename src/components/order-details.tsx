@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/pagination";
 import { appConfigs } from "../../data";
 import { format } from "date-fns";
+import ManualPayment from "./manual-payment";
 
 const Loader = () => {
   return (
@@ -174,6 +175,7 @@ export const OrderDetails: React.FC<{
   onPrev = () => {},
   className,
 }) => {
+  const [manualPayment, setManualPayment] = useState(false);
   const [_, setOpenEditor] = useState(false);
   const { data, isLoading, error } = useQuery({
     queryKey: ["order", orderId],
@@ -183,8 +185,6 @@ export const OrderDetails: React.FC<{
   const queryClient = useQueryClient();
 
   const order = data?.data;
-
-  console.log({ order });
 
   const markAsShipped = async () => {
     try {
@@ -240,12 +240,23 @@ export const OrderDetails: React.FC<{
     }
   };
 
+  const onOpenChange = (prop: boolean) => {
+    setManualPayment(prop);
+  };
+
   if (isLoading) return <Loader />;
 
   if (error || !order) return <OrderNotFound />;
 
   return (
     <Card className={className}>
+      <ManualPayment
+        orderId={orderId}
+        open={manualPayment}
+        onOpenChange={onOpenChange}
+        amount={order.totalAmount || 0}
+        accounts={appConfigs.shopAccountNumbers}
+      />
       <CardHeader className="flex flex-row items-start bg-muted/50">
         <div className="grid gap-0.5">
           <CardTitle className="group flex items-center gap-2 text-lg">
@@ -307,7 +318,7 @@ export const OrderDetails: React.FC<{
           </DropdownMenu>
         </div>
       </CardHeader>
-      <CardContent className="p-6 text-sm">
+      <CardContent className="p-3 text-sm w-full">
         <div className="grid gap-3">
           <div className="font-semibold">Order Details</div>
           <ul className="grid gap-3">
@@ -336,7 +347,9 @@ export const OrderDetails: React.FC<{
           <ul className="grid gap-3">
             <li className="flex items-center justify-between">
               <span className="text-muted-foreground">Subtotal</span>
-              <span>{formatCurrency(order.totalAmount)}</span>
+              <span>
+                {formatCurrency(order.totalAmount - order.deliveryFee)}
+              </span>
             </li>
             <li className="flex items-center justify-between">
               <span className="text-muted-foreground">Delivery Fee</span>
@@ -344,9 +357,7 @@ export const OrderDetails: React.FC<{
             </li>
             <li className="flex items-center justify-between font-semibold">
               <span>Total</span>
-              <span>
-                {formatCurrency(order.totalAmount + (order.deliveryFee || 0))}
-              </span>
+              <span>{formatCurrency(order.totalAmount)}</span>
             </li>
           </ul>
         </div>
@@ -408,18 +419,26 @@ export const OrderDetails: React.FC<{
         </div>
         <Separator className="my-4" />
         <div className="grid gap-3 w-full">
-          <div className="font-semibold">Payment Link</div>
-          <dl className="grid gap-3">
-            <div className="flex items-center justify-between">
+          <div className="font-semibold">Payment Information</div>
+          <dl className="grid gap-3 w-full">
+            <div className="flex flex-col">
               <dt className="flex items-center gap-1 text-muted-foreground">
                 <Link2 className="h-4 w-4" />
+                Payment Link
+              </dt>
+              <dd>
                 <a
                   href={order.paymentLink}
                   className="line-clamp-1 w-[9rem] md:w-full hover:underline"
                 >
                   {order.paymentLink}
                 </a>
-              </dt>
+              </dd>
+            </div>
+            <div>
+              <Button onClick={() => setManualPayment(true)} variant="outline">
+                Make Payment Manually
+              </Button>
             </div>
           </dl>
         </div>

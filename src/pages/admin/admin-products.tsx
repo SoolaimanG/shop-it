@@ -55,11 +55,13 @@ export default function AdminProducts() {
     queryFn: () => store.getProducts(2000),
   });
 
+  console.log(data);
+
   useToastError(error);
 
-  const { data: products = [] } = data || {};
+  const { data: products } = data || {};
 
-  const filteredProducts = products.filter(
+  const filteredProducts = products?.products?.filter(
     (product) =>
       (product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.collection.toLowerCase().includes(searchTerm.toLowerCase())) &&
@@ -69,10 +71,10 @@ export default function AdminProducts() {
         (filter === "outOfStock" && product.stock === 0))
   );
 
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredProducts?.length || 0 / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+  const currentProducts = filteredProducts?.slice(startIndex, endIndex);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -125,7 +127,7 @@ export default function AdminProducts() {
             </Link>
           </Button>
         </div>
-        {products.length === 0 ? (
+        {products?.totalProducts === 0 ? (
           <EmptyProducts
             className="pt-7"
             header="You have no products"
@@ -175,7 +177,7 @@ export default function AdminProducts() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {currentProducts.map((product) => (
+                {currentProducts?.map((product) => (
                   <TableRow key={product._id} className="cursor-pointer">
                     <TableCell className="p-2">
                       <div className="h-14 w-14 relative rounded-md overflow-hidden bg-gray-50 flex items-center justify-center">
@@ -260,8 +262,8 @@ export default function AdminProducts() {
             <div className="flex items-center justify-between mt-4">
               <div className="text-sm text-muted-foreground">
                 Showing {startIndex + 1} to{" "}
-                {Math.min(endIndex, filteredProducts.length)} of{" "}
-                {filteredProducts.length} products
+                {Math.min(endIndex, filteredProducts?.length || 0)} of{" "}
+                {filteredProducts?.length || 0} products
               </div>
               <div className="flex items-center space-x-2">
                 <Button

@@ -178,9 +178,9 @@ export class Store {
     collection?: string
   ) {
     const q = queryString.stringify({ page, filter, query, collection });
-    const res: { data: apiResponse<IProduct[]> } = await api.get(
-      `/products/?${q}`
-    );
+    const res: {
+      data: apiResponse<{ products: IProduct[]; totalProducts: number }>;
+    } = await api.get(`/products/?${q}`);
     return res.data;
   }
 

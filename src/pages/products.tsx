@@ -42,7 +42,7 @@ const Products = () => {
         <ScreenSize>
           <header className="w-full flex items-center justify-between">
             <h2 className="text-xl font-bold">
-              All Products ({products?.length || 0})
+              All Products ({products?.totalProducts || 0})
             </h2>
             <div className="flex items-center gap-2">
               <Input
@@ -83,7 +83,7 @@ const Products = () => {
             className={"mt-3 block md:hidden"}
           />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
-            {products?.map((product, idx) => (
+            {products?.products?.map((product, idx) => (
               <Product key={idx} {...product} />
             ))}
           </div>

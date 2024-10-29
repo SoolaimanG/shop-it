@@ -68,7 +68,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
     []
   );
 
-  const { data: products = [] } = data || {};
+  const { data: products } = data || {};
 
   const toggleProductSelection = (product: IProduct) => {
     setSelectedProducts((prev) => {
@@ -107,7 +107,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
         </div>
       ) : (
         <div className="space-y-4 p-4">
-          {products.map((product) => (
+          {products?.products?.map((product) => (
             <div
               key={product._id}
               className={`flex items-center space-x-4 px-2 py-3 rounded-md cursor-pointer transition-colors ${

@@ -75,6 +75,19 @@ export const appConfigs = {
     "+2348036317990",
   ],
   deliveryFee: 5000,
+  maxPaymentForFlutterwave: 50000,
+  shopAccountNumbers: [
+    {
+      bank: "Opay",
+      name: "Zaliya Suleiman",
+      number: "8036317990",
+    },
+    {
+      bank: "First Bank",
+      name: "Zaliya Suleiman",
+      number: "3006462764",
+    },
+  ],
 };
 
 export const socialMediaLinks = [
