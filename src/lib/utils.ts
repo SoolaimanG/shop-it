@@ -192,10 +192,13 @@ export class Store {
     return res.data;
   }
 
-  async calculateDeliveryFee(state: string, quantity: number) {
-    const q = queryString.stringify({ state, quantity });
-    const res: { data: apiResponse<{ price: number }> } = await api.get(
-      `/calculate-delivery-price/?${q}`
+  async calculateDeliveryFee(state: string, products: string[]) {
+    const res: { data: apiResponse<{ price: number }> } = await api.post(
+      `/calculate-delivery-price/`,
+      {
+        state,
+        products,
+      }
     );
     return res.data;
   }

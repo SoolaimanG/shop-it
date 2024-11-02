@@ -126,7 +126,7 @@ export const CreateNewOrder: FC<{
     queryFn: () =>
       store.calculateDeliveryFee(
         form.watch("address.state"),
-        selectedProducts.length
+        selectedProducts.map((_) => _._id!)
       ),
     enabled: Boolean(form.watch("address.state")),
   });

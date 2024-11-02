@@ -72,9 +72,12 @@ export function BuyNow({
     });
 
     const { isLoading: deliveryPriceLoading, data: __data } = useQuery({
-      queryKey: ["deliveryFee", formState.state, products.length],
+      queryKey: ["deliveryFee", formState.state, products],
       queryFn: () =>
-        store.calculateDeliveryFee(formState.state, products.length),
+        store.calculateDeliveryFee(
+          formState.state,
+          products.map((_) => _.id)
+        ),
       enabled: Boolean(formState.state),
     });
 
