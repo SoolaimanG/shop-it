@@ -64,6 +64,7 @@ export type IProduct = {
   isNew?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  multiplyDelivery?: boolean;
 };
 //
 

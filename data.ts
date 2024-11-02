@@ -147,6 +147,7 @@ export const productSchema = z
       .min(0, "Rating cannot be negative")
       .max(5, "Rating cannot exceed 5"),
     isNew: z.boolean().optional(),
+    multiplyDelivery: z.boolean().optional(),
     discountedPrice: z.coerce
       .number()
       .positive("Discounted price must be positive")

@@ -125,6 +125,7 @@ export default function CreateProductPage() {
         name: product.name || "",
         price: product.price || 0,
         stock: product.stock || 0,
+        multiplyDelivery: product.multiplyDelivery,
       });
       setImages(product.imgs || []);
     }
@@ -190,6 +191,7 @@ export default function CreateProductPage() {
         price: values?.price || form.watch("price") || 0,
         rating: 2,
         stock: values?.stock || form.watch("stock") || 0,
+        multiplyDelivery: values?.multiplyDelivery || false,
       };
 
       const res = await store.addNewProduct(product, isEditingMode, id);
@@ -475,6 +477,22 @@ export default function CreateProductPage() {
                         onCheckedChange={field.onChange}
                       />
                       <Label htmlFor="isNew">Mark as New Arrival</Label>
+                    </div>
+                  )}
+                />
+                <Controller
+                  name="multiplyDelivery"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="multiplyDelivery"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                      <Label htmlFor="multiplyDelivery">
+                        Multiply Delivery Fees
+                      </Label>
                     </div>
                   )}
                 />
