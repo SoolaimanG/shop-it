@@ -15,23 +15,24 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { Loader2, Search } from "lucide-react";
 import { z } from "zod";
-import { orderSchema } from "../../data";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { PATHS } from "../../types";
 
+const search = z.object({
+  orderId: z.string(),
+});
+
 export default function Order() {
-  const form = useForm<z.infer<typeof orderSchema>>({
-    resolver: zodResolver(orderSchema),
+  const form = useForm<z.infer<typeof search>>({
+    resolver: zodResolver(search),
   });
   const n = useNavigate();
   const [isSearching, setIsSearching] = useState(false);
 
-  const handleSearch = async (e: z.infer<typeof orderSchema>) => {
+  const handleSearch = async (e: z.infer<typeof search>) => {
     setIsSearching(true);
 
-    // Simulate search delay
-    await setTimeout(() => setIsSearching(false), 1500);
     n(PATHS.ORDER_DETAIL + e.orderId);
   };
 

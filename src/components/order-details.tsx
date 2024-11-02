@@ -234,14 +234,16 @@ export const OrderDetails: React.FC<{
   onNext?: () => void;
   onPrev?: () => void;
   className?: string;
+  showPayments?: boolean;
 }> = ({
   orderId,
   asAdmin = false,
   onNext = () => {},
   onPrev = () => {},
   className,
+  showPayments = false,
 }) => {
-  const [manualPayment, setManualPayment] = useState(false);
+  const [manualPayment, setManualPayment] = useState(showPayments);
   const [openEditor, setOpenEditor] = useState("");
   const { data, isLoading, error } = useQuery({
     queryKey: ["order", orderId],
