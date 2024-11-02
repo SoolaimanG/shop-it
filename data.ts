@@ -130,10 +130,6 @@ export const addressSchema = z.object({
   defaultAddress: z.boolean().optional(),
 });
 
-export const orderSchema = z.object({
-  orderId: z.string().max(24).min(24),
-});
-
 export const productSchema = z
   .object({
     name: z.string().min(1, "Product name is required"),
@@ -198,3 +194,18 @@ export const dashboardNavItems = [
   { name: "Orders", href: PATHS.ORDERS, icon: FileText },
   { name: "Campaign", href: PATHS.ADMIN_CAMPAIGN, icon: Megaphone },
 ];
+
+export const orderSchema = z.object({
+  orderDate: z.date(),
+  totalAmount: z.number().min(0),
+  deliveryFee: z.number().min(0),
+  paymentStatus: z.enum(["Pending", "Paid", "Failed"]),
+  orderStatus: z.enum(["Pending", "Shipped", "Delivered", "Cancelled"]),
+  address: z.object({
+    state: z.string(),
+  }),
+  "customer.name": z.string().optional(),
+  "customer.phoneNumber": z.string().optional(),
+  "customer.email": z.string().email(),
+  "customer.note": z.string().optional(),
+});

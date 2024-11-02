@@ -91,10 +91,7 @@ export function BuyNow({
       setFormState((prev) => ({ ...prev, state: value }));
     };
 
-    const handleSubmit = async (
-      event?: React.FormEvent<HTMLFormElement>,
-      type?: "manual" | "auto"
-    ) => {
+    const handleSubmit = async (event?: React.FormEvent<HTMLFormElement>) => {
       event?.preventDefault();
 
       const { phoneNumber, fullName: name, note, email, state } = formState;
@@ -117,12 +114,11 @@ export function BuyNow({
           },
         });
 
-        type === "manual" && setOrderId(res.data._id || "");
-        type === "auto" && window.open(res.data.paymentLink, "_blank");
+        setOrderId(res.data._id || "");
         toast({
           title: "Order Placed Successfully",
-          description: "You will be redirected to complete your payment.",
-          variant: "default",
+          description:
+            "An Account Number will be shown to you to make your payments.",
         });
         setAmount(res.data.totalAmount || 0);
         setOpen(false);
@@ -137,7 +133,7 @@ export function BuyNow({
     };
 
     return (
-      <form onSubmit={(e) => handleSubmit(e, "auto")} className="space-y-4">
+      <form onSubmit={(e) => handleSubmit(e)} className="space-y-4">
         <div>
           <label
             htmlFor="fullName"
@@ -255,22 +251,8 @@ export function BuyNow({
           </span>
         </div>
         <div className="flex flex-col-reverse md:flex-row gap-2">
-          {totalPrice < appConfigs.maxPaymentForFlutterwave && (
-            <Button className="w-full" type="submit">
-              Pay With Flutterwave
-            </Button>
-          )}
-          <Button
-            onClick={() => handleSubmit(undefined, "manual")}
-            variant={
-              totalPrice < appConfigs.maxPaymentForFlutterwave
-                ? "outline"
-                : "default"
-            }
-            className="w-full"
-            type="button"
-          >
-            Pay Manually
+          <Button variant={"default"} className="w-full" type="submit">
+            Proceed To Payment
           </Button>
         </div>
       </form>

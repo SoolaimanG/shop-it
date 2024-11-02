@@ -29,10 +29,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { IProduct } from "../../../types";
+import { IOrder, IProduct } from "../../../types";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -56,7 +57,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { errorMessageAndStatus, formatCurrency, store } from "@/lib/utils";
@@ -71,120 +72,181 @@ import queryString from "query-string";
 import { ProductSelector } from "@/components/product-selector";
 import { Label } from "@/components/ui/label";
 import { Img } from "react-image";
+import { orderSchema } from "../../../data";
 import { Separator } from "@/components/ui/separator";
 import { Text } from "@/components/text";
 
-const orderSchema = z.object({
-  customerName: z.string().optional(),
-  customerEmail: z.string().email(),
-  customerPhone: z.string().optional(),
-  customerNote: z.string().optional(),
-  address: z.string(),
-  state: z.string(),
-});
-
-export const CreateNewOrder = () => {
-  const [isCreateOrderOpen, setIsCreateOrderOpen] = useState(false);
+export const CreateNewOrder: FC<{
+  type?: "edit" | "create";
+  data?: IOrder;
+  isOpen?: boolean;
+  onClose?: () => void;
+}> = ({ type = "create", data: order, isOpen = false, onClose = () => {} }) => {
+  const [isCreateOrderOpen, setIsCreateOrderOpen] = useState(isOpen);
   const [selectedProducts, setSelectedProducts] = useState<Partial<IProduct>[]>(
-    []
+    order?.items || []
   );
 
   const form = useForm<z.infer<typeof orderSchema>>({
     resolver: zodResolver(orderSchema),
     defaultValues: {
-      customerName: "",
-      customerEmail: "",
-      customerPhone: "",
-      customerNote: "",
-      address: "",
-      state: "",
+      "customer.name": order?.customer.name || "",
+      "customer.email": order?.customer.email || "",
+      "customer.phoneNumber": order?.customer.phoneNumber || "",
+      "customer.note": order?.customer.note || "",
+      deliveryFee: order?.deliveryFee,
+      totalAmount: order?.totalAmount,
+      orderStatus: order?.orderStatus,
+      paymentStatus: order?.paymentStatus,
+      address: {
+        state: order?.address.state,
+      },
     },
   });
 
   const {
-    isLoading,
-    data,
-    error: stateError,
+    data: statesData,
+    isLoading: statesLoading,
+    error: statesError,
   } = useQuery({
     queryKey: ["states"],
     queryFn: store.getStates,
   });
 
   const {
-    isLoading: deliveryPriceLoading,
-    data: __data,
+    data: deliveryFeeData,
+    isLoading: deliveryFeeLoading,
     error: deliveryFeeError,
   } = useQuery({
-    queryKey: ["deliveryFee", form.watch("state"), selectedProducts.length],
+    queryKey: [
+      "deliveryFee",
+      form.watch("address.state"),
+      selectedProducts.length,
+    ],
     queryFn: () =>
-      store.calculateDeliveryFee(form.watch("state"), selectedProducts.length),
-    enabled: Boolean(form.watch("state")),
+      store.calculateDeliveryFee(
+        form.watch("address.state"),
+        selectedProducts.length
+      ),
+    enabled: Boolean(form.watch("address.state")),
   });
 
-  useToastError(stateError || deliveryFeeError);
+  const { data: totalPrice, error: totalPriceError } = useQuery({
+    queryKey: ["totalPrice", selectedProducts.length],
+    queryFn: () =>
+      store.calculateItemsPrice(
+        selectedProducts.map((product) => product._id!)
+      ),
+  });
 
-  const { data: states } = data || {};
-  const { data: deliveryFee } = __data || {};
+  useToastError(statesError || deliveryFeeError || totalPriceError);
+
+  const states = statesData?.data || [];
+  const deliveryFee = deliveryFeeData?.data?.price || 0;
+
+  useEffect(() => {
+    form.setValue("deliveryFee", deliveryFee || 0);
+    form.setValue("totalAmount", totalPrice?.data.totalAmount || 0);
+  }, [deliveryFee, totalPrice?.data]);
 
   const handleStateChange = (value: string) => {
-    form.setValue("state", value);
+    form.setValue("address.state", value);
   };
 
   async function onSubmit(values: z.infer<typeof orderSchema>) {
     try {
       if (selectedProducts.length === 0) {
         toast({
-          title: "Something went wrong",
+          title: "Error",
           description: "Select at least one product to create an order",
           variant: "destructive",
         });
         return;
       }
 
-      const res = await store.createNewOrder({
-        address: {
-          state: values.state,
-          address: values.address,
-        },
-        customer: {
-          name: values.customerName,
-          phoneNumber: values.customerPhone,
-          email: values.customerEmail,
-          note: values.customerNote,
-        },
-        products: selectedProducts.map((product) => ({
-          ids: product?._id || "",
-          color: product?.availableColors?.[0] || "",
-        })),
-      });
+      if (type === "create") {
+        const res = await store.createNewOrder({
+          address: {
+            state: values.address.state,
+            address: "",
+          },
+          customer: {
+            name: values["customer.name"],
+            phoneNumber: values["customer.phoneNumber"],
+            email: values["customer.email"],
+            note: values["customer.note"],
+          },
+          products: selectedProducts.map((product) => ({
+            ids: product?._id || "",
+            color: product?.availableColors?.[0] || "",
+          })),
+        });
+        toast({ title: "Order Created", description: res.message });
+      } else if (type === "edit" && order) {
+        const newOrder: IOrder = {
+          ...order,
+          customer: {
+            email: values["customer.email"],
+            name: values["customer.name"] || "",
+            note: values["customer.note"] || "",
+            phoneNumber: values["customer.phoneNumber"] || "",
+          },
+          address: {
+            ...order.address,
+            state: values.address.state,
+          },
+        };
+
+        await store.editOrder(order._id!, newOrder);
+        toast({
+          title: "Order Updated",
+          description: "Order has been successfully updated.",
+        });
+      }
 
       setIsCreateOrderOpen(false);
-      toast({ title: `Order Created`, description: res.message });
+      onClose();
     } catch (error) {
       const _error = errorMessageAndStatus(error);
       toast({
-        title: `${_error.status}`,
+        title: `Error ${_error.status}`,
         description: _error.message,
         variant: "destructive",
       });
-    } finally {
     }
   }
 
   return (
-    <Sheet open={isCreateOrderOpen} onOpenChange={setIsCreateOrderOpen}>
-      <SheetTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Create New Order
-        </Button>
-      </SheetTrigger>
+    <Sheet
+      open={isCreateOrderOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+        setIsCreateOrderOpen(open);
+      }}
+    >
+      {type === "create" && (
+        <SheetTrigger asChild>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            {type === "create" ? "Create New Order" : "Edit Order"}
+          </Button>
+        </SheetTrigger>
+      )}
       <SheetContent
         side="right"
         className="w-[95%] md:max-w-xl overflow-y-auto"
       >
         <SheetHeader>
-          <SheetTitle>Create New Order</SheetTitle>
+          <SheetTitle>
+            {type === "create"
+              ? "Create New Order"
+              : `Edit Order ${order?._id || ""}`}
+          </SheetTitle>
+          {type === "edit" && (
+            <SheetDescription>
+              Make changes to the order here. Click save when you're done.
+            </SheetDescription>
+          )}
         </SheetHeader>
         <Form {...form}>
           <form
@@ -193,7 +255,7 @@ export const CreateNewOrder = () => {
           >
             <FormField
               control={form.control}
-              name="customerEmail"
+              name="customer.email"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Customer Email</FormLabel>
@@ -206,7 +268,7 @@ export const CreateNewOrder = () => {
             />
             <FormField
               control={form.control}
-              name="customerName"
+              name="customer.name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Customer Name (Optional)</FormLabel>
@@ -219,13 +281,65 @@ export const CreateNewOrder = () => {
             />
             <FormField
               control={form.control}
-              name="customerPhone"
+              name="customer.phoneNumber"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Customer Phone (Optional)</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter customer phone" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="paymentStatus"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Payment Status</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select payment status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Paid">Paid</SelectItem>
+                      <SelectItem value="Failed">Failed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="orderStatus"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Order Status</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select order status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Shipped">Shipped</SelectItem>
+                      <SelectItem value="Delivered">Delivered</SelectItem>
+                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -251,6 +365,7 @@ export const CreateNewOrder = () => {
                     </Button>
                     <Img
                       src={product.imgs?.[0] || ""}
+                      alt={product.name}
                       className="w-[3rem] h-auto"
                     />
                   </div>
@@ -265,12 +380,12 @@ export const CreateNewOrder = () => {
             </div>
             <FormField
               control={form.control}
-              name="state"
+              name="address.state"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>State</FormLabel>
                   <Select
-                    disabled={isLoading}
+                    disabled={statesLoading}
                     onValueChange={handleStateChange}
                     value={field.value}
                   >
@@ -280,7 +395,7 @@ export const CreateNewOrder = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {states?.map((state) => (
+                      {states.map((state) => (
                         <SelectItem key={state} value={state}>
                           {state}
                         </SelectItem>
@@ -291,18 +406,59 @@ export const CreateNewOrder = () => {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="totalAmount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Total Amount</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      disabled
+                      step="0.01"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value))
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="deliveryFee"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Delivery Fee</FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled
+                      type="number"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value))
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <Separator />
             <div className="flex items-center justify-between">
-              <Text>Delivery Fee</Text>
-              <p className="font-semibold">
-                {deliveryPriceLoading
-                  ? "Calculating..."
-                  : formatCurrency(deliveryFee?.price || 0)}
-              </p>
+              <p>Total:</p>
+              <Text className="text-lg">
+                {formatCurrency(
+                  deliveryFee + (totalPrice?.data.totalAmount || 0)
+                )}
+              </Text>
             </div>
             <FormField
               control={form.control}
-              name="customerNote"
+              name="customer.note"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Customer Note (Optional)</FormLabel>
@@ -316,8 +472,11 @@ export const CreateNewOrder = () => {
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Creating Order..." : "Create Order"}
+            <Button
+              type="submit"
+              disabled={statesLoading || deliveryFeeLoading}
+            >
+              {type === "create" ? "Create Order" : "Update Order"}
             </Button>
           </form>
         </Form>

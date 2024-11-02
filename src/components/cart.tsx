@@ -127,7 +127,7 @@ export const Cart = () => {
                     </p>
                     {item.hasDiscount && (
                       <p className="text-sm line-through text-muted-foreground">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        {formatCurrency(item.price * item.quantity)}
                       </p>
                     )}
                     <Button

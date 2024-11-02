@@ -21,12 +21,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  errorMessageAndStatus,
-  formatCurrency,
-  store,
-  Store,
-} from "@/lib/utils";
+import { errorMessageAndStatus, formatCurrency, store } from "@/lib/utils";
 import {
   ChartConfig,
   ChartContainer,
@@ -48,16 +43,20 @@ import { toast } from "@/hooks/use-toast";
 import { useToastError } from "@/hooks/use-toast-error";
 import { FC, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import ManualPayment from "@/components/manual-payment";
+import { appConfigs } from "../../data";
+import { formatDate } from "date-fns";
 
 const MiniOrderDetail: FC<IOrder> = ({ ...order }) => {
   const query = useQueryClient();
+  const [open, setOpen] = useState(false);
 
   const handleOrderAction = async (
     orderId: string,
     action: "cancel" | "complete"
   ) => {
     if (action === "complete") {
-      window.open(order?.paymentLink || "", "_blank");
+      setOpen(true);
       return;
     }
 
@@ -103,6 +102,13 @@ const MiniOrderDetail: FC<IOrder> = ({ ...order }) => {
 
   return (
     <div key={order._id} className="mb-8 bg-gray-50 rounded-lg p-6 shadow-sm">
+      <ManualPayment
+        orderId={order?._id || "id"}
+        amount={order.totalAmount}
+        open={open}
+        onOpenChange={setOpen}
+        accounts={appConfigs.shopAccountNumbers}
+      />
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
           <Package className="h-6 w-6 text-gray-500" />
@@ -244,9 +250,11 @@ const AllOrders = () => {
         ) : !data?.data.length ? (
           <EmptyProducts className="mt-10" />
         ) : (
-          data.data.map((order) => (
-            <MiniOrderDetail key={order._id} {...order} />
-          ))
+          <ScrollArea className="h-[calc(100vh-120px)] pr-4 mt-6">
+            {data.data.map((order) => (
+              <MiniOrderDetail key={order._id} {...order} />
+            ))}
+          </ScrollArea>
         )}
       </SheetContent>
     </Sheet>
@@ -254,7 +262,7 @@ const AllOrders = () => {
 };
 
 const ExpenseInsight = () => {
-  const store = new Store();
+  const { user } = useStore();
   const { data } = useQuery({
     queryKey: ["expense-insight"],
     queryFn: () => store.getExpenseInsight(),
@@ -293,7 +301,9 @@ const ExpenseInsight = () => {
         <div className="flex flex-col">
           <div className="items-center pb-0">
             <h2>Total amount spent</h2>
-            <Text>Account Creation -- Now</Text>
+            {user?.createdAt && (
+              <Text>{formatDate(user?.createdAt!, "PPP")} -- Till Date</Text>
+            )}
           </div>
           {hasData ? (
             <div className="flex-1 pb-0">
@@ -330,16 +340,16 @@ const ExpenseInsight = () => {
                               <tspan
                                 x={viewBox.cx}
                                 y={viewBox.cy}
-                                className="fill-foreground text-3xl font-bold"
+                                className="fill-foreground text-sm font-bold"
                               >
-                                {data?.data?.totalSpent || 0}
+                                {formatCurrency(data?.data?.totalSpent || 0)}
                               </tspan>
                               <tspan
                                 x={viewBox.cx}
                                 y={(viewBox.cy || 0) + 24}
                                 className="fill-muted-foreground"
                               >
-                                Total Sales
+                                Total Purchases
                               </tspan>
                             </text>
                           );
@@ -360,7 +370,7 @@ const ExpenseInsight = () => {
           {hasData && (
             <div className="gap-2 text-sm flex flex-col items-center justify-center">
               <div className="flex items-center gap-2 font-medium leading-none">
-                Sales up by 8.7% this month{" "}
+                Purchases you have done on this shop{" "}
                 <TrendingUpIcon className="h-4 w-4" />
               </div>
               <div className="leading-none text-muted-foreground">

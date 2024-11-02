@@ -146,7 +146,6 @@ export const Product: FC<
               _id,
               description,
               availableColors,
-
               ...rest,
             }}
             quantity={1}

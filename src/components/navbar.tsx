@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "./logo";
 import { Cart } from "./cart";
 import { navLinks } from "../../data";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { cn, isPathMatching } from "@/lib/utils";
 import { PATHS } from "../../types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -14,14 +14,13 @@ import Cookies from "js-cookie";
 
 export default function Navbar({ hideSearch }: { hideSearch?: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const n = useNavigate();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const { user } = useAuthentication();
 
   const signOut = () => {
     Cookies.remove("access-token");
-    n("/");
+    window.location.replace("/");
   };
 
   return (

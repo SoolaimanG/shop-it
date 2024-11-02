@@ -12,6 +12,7 @@ import {
   ICollection,
   IDashBoardContent,
   IExpenseInsight,
+  INewsLetter,
   IOrder,
   IProduct,
   IProductFilter,
@@ -518,10 +519,38 @@ export class Store {
     return res.data;
   }
 
-  async getLGAs(state: string) {
-    const res: { data: apiResponse<string[]> } = await api.get(
-      `/get-lga/${state}`
+  async getNewsLetterSubscribers(page = 20, query?: string) {
+    const q = queryString.stringify({ page, query });
+    const res: { data: apiResponse<INewsLetter[]> } = await api.get(
+      `/news-letter-subscribers/?${q}`,
+      {
+        headers: { Authorization: this.getAccessToken },
+      }
     );
+
+    return res.data;
+  }
+
+  async sendEmailToSubscribers(
+    subject: string,
+    body: string,
+    recipients: string[]
+  ) {
+    const res: { data: apiResponse } = await api.post(
+      "/send-email-to-subscribers/",
+      { subject, body, recipients },
+      { headers: { Authorization: this.getAccessToken } }
+    );
+
+    return res.data;
+  }
+
+  async deleteSubsciber(ids: string[]) {
+    const q = queryString.stringify({ ids });
+    const res = await api.delete(`/news-letter-subscribers/?${q}`, {
+      headers: { Authorization: this.getAccessToken },
+    });
+
     return res.data;
   }
 }

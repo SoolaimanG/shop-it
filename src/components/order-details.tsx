@@ -26,7 +26,6 @@ import {
   ChevronRight,
   Copy,
   CreditCard,
-  Link2,
   MoreVertical,
   Truck,
 } from "lucide-react";
@@ -40,6 +39,17 @@ import {
 import { appConfigs } from "../../data";
 import { format } from "date-fns";
 import ManualPayment from "./manual-payment";
+import { CreateNewOrder } from "@/pages/admin/admin-order";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { AlertTriangle } from "lucide-react";
 
 const Loader = () => {
   return (
@@ -162,6 +172,62 @@ const OrderNotFound = () => {
   );
 };
 
+function ShipOrderConfirmationDialog({
+  orderId,
+  onConfirm,
+}: {
+  orderId: string;
+  onConfirm: () => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const _onConfirm = async () => {
+    onConfirm();
+  };
+
+  const handleConfirm = async () => {
+    await _onConfirm();
+    setIsOpen(false);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="h-8 gap-1">
+          <Truck className="h-3.5 w-3.5" />
+          <span className="lg:sr-only xl:not-sr-only xl:whitespace-nowrap">
+            Mark as shipped
+          </span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[550px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-yellow-500" />
+            Confirm Shipping Order
+          </DialogTitle>
+          <DialogDescription>
+            Are you sure you want to mark this order as shipped? This action
+            will trigger an email notification to the customer.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <p className="text-sm text-gray-500">
+            Order ID:{" "}
+            <span className="font-medium text-gray-900">{orderId}</span>
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleConfirm}>Confirm Shipping</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export const OrderDetails: React.FC<{
   orderId: string;
   asAdmin?: boolean;
@@ -176,7 +242,7 @@ export const OrderDetails: React.FC<{
   className,
 }) => {
   const [manualPayment, setManualPayment] = useState(false);
-  const [_, setOpenEditor] = useState(false);
+  const [openEditor, setOpenEditor] = useState("");
   const { data, isLoading, error } = useQuery({
     queryKey: ["order", orderId],
     queryFn: () => store.getOrder(orderId),
@@ -244,6 +310,10 @@ export const OrderDetails: React.FC<{
     setManualPayment(prop);
   };
 
+  const onClose = () => {
+    setOpenEditor("");
+  };
+
   if (isLoading) return <Loader />;
 
   if (error || !order) return <OrderNotFound />;
@@ -256,6 +326,13 @@ export const OrderDetails: React.FC<{
         onOpenChange={onOpenChange}
         amount={order.totalAmount || 0}
         accounts={appConfigs.shopAccountNumbers}
+      />
+      <CreateNewOrder
+        key={openEditor}
+        isOpen={Boolean(openEditor)}
+        onClose={onClose}
+        data={order}
+        type="edit"
       />
       <CardHeader className="flex flex-row items-start bg-muted/50">
         <div className="grid gap-0.5">
@@ -280,17 +357,10 @@ export const OrderDetails: React.FC<{
         </div>
         <div className="ml-auto flex items-center gap-1">
           {asAdmin && (
-            <Button
-              onClick={markAsShipped}
-              size="sm"
-              variant="outline"
-              className="h-8 gap-1"
-            >
-              <Truck className="h-3.5 w-3.5" />
-              <span className="lg:sr-only xl:not-sr-only xl:whitespace-nowrap">
-                Mark as shipped
-              </span>
-            </Button>
+            <ShipOrderConfirmationDialog
+              onConfirm={markAsShipped}
+              orderId={order._id!}
+            />
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -301,7 +371,9 @@ export const OrderDetails: React.FC<{
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {asAdmin && (
-                <DropdownMenuItem onClick={() => setOpenEditor(true)}>
+                <DropdownMenuItem
+                  onClick={() => setOpenEditor(order._id || "")}
+                >
                   Edit
                 </DropdownMenuItem>
               )}
@@ -420,27 +492,17 @@ export const OrderDetails: React.FC<{
         <Separator className="my-4" />
         <div className="grid gap-3 w-full">
           <div className="font-semibold">Payment Information</div>
-          <dl className="grid gap-3 w-full">
-            <div className="flex flex-col">
-              <dt className="flex items-center gap-1 text-muted-foreground">
-                <Link2 className="h-4 w-4" />
-                Payment Link
-              </dt>
-              <dd>
-                <a
-                  href={order.paymentLink}
-                  className="line-clamp-1 w-[9rem] md:w-full hover:underline"
-                >
-                  {order.paymentLink}
-                </a>
-              </dd>
-            </div>
+          <div className="gap-3 w-full">
             <div>
-              <Button onClick={() => setManualPayment(true)} variant="outline">
-                Make Payment Manually
+              <Button
+                onClick={() => setManualPayment(true)}
+                variant="outline"
+                className="w-full"
+              >
+                Click To Make Payments
               </Button>
             </div>
-          </dl>
+          </div>
         </div>
       </CardContent>
       {asAdmin && (

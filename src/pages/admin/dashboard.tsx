@@ -21,6 +21,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { PATHS } from "../../../types";
 import { useQuery } from "@tanstack/react-query";
 import { formatCurrency, Store } from "@/lib/utils";
+import NewsletterManagement from "@/components/newsletter-management";
 
 const DashBoard = () => {
   const store = new Store();
@@ -184,6 +185,7 @@ const DashBoard = () => {
               </CardContent>
             </Card>
           </div>
+          <NewsletterManagement />
         </div>
       </ScreenSize>
     </div>

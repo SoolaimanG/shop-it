@@ -120,7 +120,6 @@ export type IOrder = {
   paymentStatus: IPaymentStatus;
   orderStatus: IOrderStatus;
   deliveryFee: number;
-  paymentLink: string;
   customer: {
     name?: string;
     phoneNumber?: string;
@@ -153,6 +152,12 @@ export type IDashBoardContent = {
 export type ISalesOverview = {
   name: string;
   total: number;
+};
+
+export type INewsLetter = {
+  email: string;
+  _id?: string;
+  createdAt: string;
 };
 
 export type IUseStore = {
