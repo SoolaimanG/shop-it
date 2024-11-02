@@ -196,6 +196,7 @@ export const dashboardNavItems = [
 ];
 
 export const orderSchema = z.object({
+  orderId: z.string().optional(),
   orderDate: z.date(),
   totalAmount: z.number().min(0),
   deliveryFee: z.number().min(0),
